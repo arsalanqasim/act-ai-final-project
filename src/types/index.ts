@@ -177,3 +177,51 @@ export interface AiGatewayResponse<T = unknown> {
   error?: string;
   engineMode: EngineMode;
 }
+
+
+// Application Workflow Types (Phase 3A)
+export type ApplicationStatus =
+  | 'saved'
+  | 'researching'
+  | 'drafting'
+  | 'ready_to_submit'
+  | 'submitted'
+  | 'interview'
+  | 'offer'
+  | 'rejected'
+  | 'archived';
+
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  completed: boolean;
+}
+
+export interface ApplicationRecord {
+  id: string;
+  userId: string;
+  opportunityId: string;
+  opportunitySnapshot: Opportunity;
+  status: ApplicationStatus;
+  notes: string;
+  nextAction: string;
+  nextActionAt: string | null;
+  submittedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  checklist: ChecklistItem[];
+}
+
+export interface ApplicationRow {
+  id: string;
+  user_id: string;
+  opportunity_id: string;
+  opportunity_snapshot: unknown;
+  status: ApplicationStatus;
+  notes: string;
+  next_action: string;
+  next_action_at: string | null;
+  submitted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
