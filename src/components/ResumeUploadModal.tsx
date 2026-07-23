@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { parseResumeWithGemini } from '../services/geminiService';
-import { X, FileText, Upload, Sparkles, Loader2, CheckCircle2, UserCheck } from 'lucide-react';
+import { X, FileText, Upload, Loader2, CheckCircle2, UserCheck } from 'lucide-react';
 
 interface ResumeUploadModalProps {
   isOpen: boolean;
@@ -9,7 +9,7 @@ interface ResumeUploadModalProps {
 }
 
 export const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({ isOpen, onClose }) => {
-  const { setUserProfile, apiKey, userProfile } = useApp();
+  const { setUserProfile, userProfile } = useApp();
   const [resumeText, setResumeText] = useState('');
   const [fileName, setFileName] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
@@ -43,7 +43,7 @@ export const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({ isOpen, on
     setExtractedSuccess(false);
 
     try {
-      const extracted = await parseResumeWithGemini(resumeText, apiKey);
+      const extracted = await parseResumeWithGemini(resumeText);
       setUserProfile({
         ...userProfile,
         name: extracted.name || userProfile.name,
@@ -102,7 +102,7 @@ TECHNICAL SKILLS:
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="font-['Outfit'] text-xl font-bold text-white">AI Resume / CV Extractor Agent</h2>
+            <h2 className="font-['Outfit'] text-xl font-bold text-white">CV / Resume Extractor Agent</h2>
             <p className="text-xs text-slate-400">Upload your CV to automatically set up your skills, title & goals in 1-click.</p>
           </div>
         </div>
@@ -113,13 +113,13 @@ TECHNICAL SKILLS:
           <div className="rounded-2xl border-2 border-dashed border-slate-700 bg-slate-900/40 p-5 text-center hover:border-cyan-500/50 transition-colors">
             <Upload className="mx-auto h-8 w-8 text-cyan-400" />
             <p className="mt-2 text-xs font-semibold text-slate-200">
-              {fileName ? `File Selected: ${fileName}` : 'Upload your CV / Resume file (.txt, .pdf, .doc)'}
+              {fileName ? `File Selected: ${fileName}` : 'Upload a plain-text CV / Resume file (.txt)'}
             </p>
             <label className="mt-3 inline-block cursor-pointer rounded-xl bg-slate-800 border border-slate-700 px-4 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-slate-700">
               Choose File
               <input
                 type="file"
-                accept=".txt,.pdf,.doc,.docx"
+                accept=".txt,text/plain"
                 onChange={handleFileUpload}
                 className="hidden"
               />
@@ -180,7 +180,7 @@ TECHNICAL SKILLS:
             >
               {isExtracting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Extracting Profile with AI...
+                  <Loader2 className="h-4 w-4 animate-spin" /> Extracting Profile...
                 </>
               ) : (
                 <>

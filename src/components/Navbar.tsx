@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Sparkles, PlusCircle, User, Settings, Bookmark, Zap, LogIn, LogOut, ChevronDown } from 'lucide-react';
+import { PlusCircle, User, Settings, Bookmark, Zap, LogIn, LogOut, ChevronDown } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { 
@@ -72,12 +72,12 @@ export const Navbar: React.FC = () => {
             )}
           </button>
 
-          {/* AI Settings */}
+          {/* AI Settings / Engine Status */}
           <button
             id="btn-settings"
             onClick={() => setIsSettingsOpen(true)}
             className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 text-slate-300 transition-colors hover:border-slate-700 hover:text-white"
-            title="AI Settings"
+            title="Engine Status & Privacy"
           >
             <Settings className="h-4 w-4" />
           </button>
@@ -116,7 +116,7 @@ export const Navbar: React.FC = () => {
                     onClick={() => { setIsSettingsOpen(true); setIsDropdownOpen(false); }}
                     className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
                   >
-                    <Settings className="h-4 w-4 text-indigo-400" /> AI Settings & Keys
+                    <Settings className="h-4 w-4 text-indigo-400" /> Engine Status & Privacy
                   </button>
 
                   <button

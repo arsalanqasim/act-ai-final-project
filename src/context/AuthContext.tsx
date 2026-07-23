@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserAccount, UserProfile } from '../types';
+import { UserAccount, UserProfile, OpportunityCategory, LocationPreference } from '../types';
 import { INITIAL_USER_PROFILE } from '../services/mockData';
 
 interface AuthContextType {
@@ -15,7 +15,7 @@ interface AuthContextType {
   setAuthMode: (mode: 'login' | 'signup') => void;
   isWizardOpen: boolean;
   setIsWizardOpen: (open: boolean) => void;
-  completeOnboarding: (skills: string[], categories: any[], location: any) => void;
+  completeOnboarding: (skills: string[], categories: OpportunityCategory[], location: LocationPreference) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -68,6 +68,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [currentUser]);
 
+  // Helper to strip passwordHash
+  const extractUserProfile = (account: UserAccount): UserProfile => {
+    const profile = { ...account };
+    delete (profile as Partial<UserAccount>).passwordHash;
+    return profile;
+  };
+
   // Login handler
   const login = (email: string, password: string) => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -81,8 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Invalid password. Please try again.' };
     }
 
-    const { passwordHash, ...profile } = userAccount;
-    setCurrentUser(profile);
+    setCurrentUser(extractUserProfile(userAccount));
     setIsAuthModalOpen(false);
     return { success: true };
   };
@@ -108,8 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       [normalizedEmail]: newAccount
     }));
 
-    const { passwordHash, ...profile } = newAccount;
-    setCurrentUser(profile);
+    setCurrentUser(extractUserProfile(newAccount));
     setIsAuthModalOpen(false);
     setIsWizardOpen(true); // Launch onboarding wizard for new user
     return { success: true };
@@ -141,7 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Complete Onboarding Wizard
-  const completeOnboarding = (skills: string[], targetCategories: any[], preferredLocation: any) => {
+  const completeOnboarding = (skills: string[], targetCategories: OpportunityCategory[], preferredLocation: LocationPreference) => {
     if (!currentUser) return;
     updateUserAccount({
       skills,

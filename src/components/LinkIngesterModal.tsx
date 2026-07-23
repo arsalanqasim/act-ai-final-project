@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { parseUnstructuredTextWithGemini } from '../services/geminiService';
-import { X, Sparkles, PlusCircle, Link, FileText, Loader2 } from 'lucide-react';
+import { X, Sparkles, PlusCircle, FileText, Loader2 } from 'lucide-react';
 
 export const LinkIngesterModal: React.FC = () => {
-  const { isIngesterOpen, setIsIngesterOpen, addOpportunity, apiKey } = useApp();
+  const { isIngesterOpen, setIsIngesterOpen, addOpportunity } = useApp();
   const [rawInput, setRawInput] = useState('');
   const [isParsing, setIsParsing] = useState(false);
 
@@ -16,7 +16,7 @@ export const LinkIngesterModal: React.FC = () => {
 
     setIsParsing(true);
     try {
-      const extractedOpp = await parseUnstructuredTextWithGemini(rawInput, apiKey);
+      const extractedOpp = await parseUnstructuredTextWithGemini(rawInput);
       addOpportunity(extractedOpp);
       setRawInput('');
       setIsIngesterOpen(false);
@@ -51,8 +51,8 @@ Apply here: https://devpost.com/hackathons/agentic-ai-2026`;
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="font-['Outfit'] text-xl font-bold text-white">AI Unstructured Ingestion Agent</h2>
-            <p className="text-xs text-slate-400">Paste any messy LinkedIn post, WhatsApp alert, or URL to extract a clean opportunity.</p>
+            <h2 className="font-['Outfit'] text-xl font-bold text-white">Unstructured Opportunity Ingestion Agent</h2>
+            <p className="text-xs text-slate-400">Paste any raw LinkedIn post, WhatsApp alert, or text to extract structured details locally.</p>
           </div>
         </div>
 
@@ -60,7 +60,7 @@ Apply here: https://devpost.com/hackathons/agentic-ai-2026`;
           
           <div>
             <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
-              <span>Paste Raw Post Text or Opportunity Link</span>
+              <span>Paste Raw Opportunity Text or Post</span>
               <button
                 type="button"
                 onClick={() => setRawInput(sampleLinkedInText)}
@@ -72,7 +72,7 @@ Apply here: https://devpost.com/hackathons/agentic-ai-2026`;
             <textarea
               id="textarea-raw-ingest-input"
               rows={6}
-              placeholder="Paste LinkedIn post content, WhatsApp message, tweet, or opportunity website text here..."
+              placeholder="Paste LinkedIn post content, WhatsApp message, tweet, or opportunity description text here..."
               value={rawInput}
               onChange={(e) => setRawInput(e.target.value)}
               className="glass-input mt-2 w-full rounded-2xl p-4 text-xs sm:text-sm font-mono leading-relaxed"
@@ -80,11 +80,11 @@ Apply here: https://devpost.com/hackathons/agentic-ai-2026`;
             />
           </div>
 
-          {/* AI Parser Explanation */}
+          {/* Parser Explanation */}
           <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-xs text-slate-400 flex items-start gap-2">
             <FileText className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
             <p>
-              The <strong>Ingestion Agent</strong> uses Gemini Vision & NLP to extract title, organization, category, deadline, tech stack, prize, and apply link into your feed.
+              The <strong>Ingestion Agent</strong> uses local NLP parsing rules to extract title, organization, category, deadline, tech stack, prize, and apply link into your opportunity feed.
             </p>
           </div>
 
@@ -105,7 +105,7 @@ Apply here: https://devpost.com/hackathons/agentic-ai-2026`;
             >
               {isParsing ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Ingesting with AI...
+                  <Loader2 className="h-4 w-4 animate-spin" /> Ingesting Text...
                 </>
               ) : (
                 <>

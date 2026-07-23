@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { UserProfile, Opportunity, MatchResult, FilterState } from '../types';
 import { INITIAL_USER_PROFILE, INITIAL_OPPORTUNITIES } from '../services/mockData';
-import { evaluateMatchWithGemini } from '../services/geminiService';
 import { calculateLocalMatchScore } from '../services/fallbackService';
 import { useAuth } from './AuthContext';
 
@@ -12,8 +11,6 @@ interface AppContextType {
   addOpportunity: (opp: Opportunity) => void;
   savedIds: string[];
   toggleSaveOpportunity: (id: string) => void;
-  apiKey: string;
-  setApiKey: (key: string) => void;
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   matchResults: Record<string, MatchResult>;
@@ -32,11 +29,18 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const LOCAL_SAVED_KEY = 'opp_pulse_saved_ids_v2';
-const LOCAL_API_KEY = 'opp_pulse_gemini_api_key_v2';
 const LOCAL_OPPS_KEY = 'opp_pulse_custom_opps_v2';
+const OLD_LOCAL_API_KEY = 'opp_pulse_gemini_api_key_v2';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser, updateUserAccount } = useAuth();
+
+  // One-time migration to remove legacy client-side API key from localStorage
+  useEffect(() => {
+    if (localStorage.getItem(OLD_LOCAL_API_KEY)) {
+      localStorage.removeItem(OLD_LOCAL_API_KEY);
+    }
+  }, []);
 
   // Profile derived from AuthContext or fallback
   const userProfile = currentUser || INITIAL_USER_PROFILE;
@@ -64,11 +68,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
     return ['opp_001', 'opp_005'];
-  });
-
-  // API Key
-  const [apiKey, setApiKey] = useState<string>(() => {
-    return localStorage.getItem(LOCAL_API_KEY) || import.meta.env.VITE_GEMINI_API_KEY || '';
   });
 
   // Filters
@@ -106,34 +105,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  // Save API key
-  const handleSetApiKey = (key: string) => {
-    setApiKey(key);
-    localStorage.setItem(LOCAL_API_KEY, key);
-  };
-
   // Re-evaluate matches for all opportunities
-  const reevaluateMatches = async () => {
+  const reevaluateMatches = useCallback(async () => {
     setIsLoadingMatches(true);
     const newResults: Record<string, MatchResult> = {};
 
     for (const opp of opportunities) {
-      if (apiKey && apiKey.trim() !== '') {
-        const res = await evaluateMatchWithGemini(userProfile, opp, apiKey);
-        newResults[opp.id] = res;
-      } else {
-        newResults[opp.id] = calculateLocalMatchScore(userProfile, opp);
-      }
+      newResults[opp.id] = calculateLocalMatchScore(userProfile, opp);
     }
 
     setMatchResults(newResults);
     setIsLoadingMatches(false);
-  };
+  }, [userProfile, opportunities]);
 
-  // Re-calculate matches when profile, opportunities, or API key changes
+  // Re-calculate matches when profile or opportunities change
   useEffect(() => {
     reevaluateMatches();
-  }, [userProfile, opportunities.length, apiKey]);
+  }, [reevaluateMatches]);
 
   return (
     <AppContext.Provider
@@ -144,8 +132,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addOpportunity,
         savedIds,
         toggleSaveOpportunity,
-        apiKey,
-        setApiKey: handleSetApiKey,
         filters,
         setFilters,
         matchResults,

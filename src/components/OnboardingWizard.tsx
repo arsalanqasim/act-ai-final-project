@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { OpportunityCategory, LocationPreference } from '../types';
-import { Sparkles, Check, ArrowRight, Target, Globe, Layers, Award, FileText, Upload } from 'lucide-react';
+import { Sparkles, Check, ArrowRight, Globe, Layers, Award, FileText, Upload } from 'lucide-react';
 import { ResumeUploadModal } from './ResumeUploadModal';
 
 export const OnboardingWizard: React.FC = () => {

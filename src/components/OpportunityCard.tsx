@@ -1,7 +1,7 @@
 import React from 'react';
 import { Opportunity, MatchResult } from '../types';
 import { useApp } from '../context/AppContext';
-import { Calendar, MapPin, DollarSign, Bookmark, Sparkles, ExternalLink, Check, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, DollarSign, Bookmark, Sparkles, ExternalLink, Check } from 'lucide-react';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
@@ -15,7 +15,6 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, m
   const score = matchResult?.score ?? 75;
   const verdict = matchResult?.verdict ?? 'Good Match';
   const matchingSkills = matchResult?.matchingSkills ?? [];
-  const reasons = matchResult?.reasons ?? [];
 
   // Match score color badge logic
   const getBadgeStyle = (s: number) => {

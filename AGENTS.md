@@ -50,7 +50,7 @@ The application uses an **Agentic Multi-Agent State Machine**:
 - **Framework**: React 18 + Vite
 - **Styling**: Tailwind CSS + Custom Glassmorphism CSS utilities
 - **Icons**: `lucide-react`
-- **LLM Engine**: Google Gemini API (`gemini-1.5-flash` / `gemini-2.0-flash`) via `@google/generative-ai` SDK
+- **LLM Integration (Phase 1)**: Google Gemini through server-side Vercel API routes; no AI SDK or provider key may be shipped in the browser bundle
 - **Fallback Engine**: Local Heuristic & Rules-based Match Engine (Zero-Key execution guaranteed)
 - **Deployment**: Vercel (Hobby Tier — $0 Cost)
 - **State Management**: React Context API + Browser `localStorage`
@@ -70,7 +70,7 @@ The application uses an **Agentic Multi-Agent State Machine**:
 
 3. **Zero-Cost Security Protocol**:
    - NEVER hardcode API keys in source files.
-   - API keys must be loaded from `import.meta.env.VITE_GEMINI_API_KEY` or entered dynamically via UI Settings modal (stored in `localStorage`).
+   - Provider API keys are server-only environment variables (for example, `GEMINI_API_KEY`) and must never use the `VITE_` prefix or be stored in browser storage.
 
 4. **UI/UX Aesthetics Standard**:
    - Deep dark futuristic theme (`#0B0F19` background, cyan/indigo accent gradients).

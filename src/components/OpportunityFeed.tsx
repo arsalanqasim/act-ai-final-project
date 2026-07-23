@@ -1,11 +1,11 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { OpportunityCard } from './OpportunityCard';
-import { OpportunityCategory, LocationPreference } from '../types';
-import { Search, Filter, SlidersHorizontal, Sparkles, Layers } from 'lucide-react';
+import { OpportunityCategory, FilterState } from '../types';
+import { Search, Sparkles, Layers } from 'lucide-react';
 
 export const OpportunityFeed: React.FC = () => {
-  const { opportunities, filters, setFilters, matchResults, savedIds, isLoadingMatches } = useApp();
+  const { opportunities, filters, setFilters, matchResults, isLoadingMatches } = useApp();
 
   const categories: ('All' | OpportunityCategory)[] = [
     'All',
@@ -97,7 +97,7 @@ export const OpportunityFeed: React.FC = () => {
             <select
               id="select-sort-by"
               value={filters.sortBy}
-              onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value as any }))}
+              onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value as FilterState['sortBy'] }))}
               className="glass-input rounded-xl px-3 py-1.5 text-xs font-medium text-slate-200 border-slate-800"
             >
               <option value="match">🔥 Highest Match Fit</option>
@@ -130,7 +130,7 @@ export const OpportunityFeed: React.FC = () => {
             <select
               id="select-filter-location"
               value={filters.location}
-              onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value as any }))}
+              onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value as FilterState['location'] }))}
               className="glass-input rounded-xl px-3 py-2 text-xs font-medium text-slate-200 border-slate-800 flex-1 sm:flex-none"
             >
               <option value="All">All Locations</option>
@@ -156,7 +156,7 @@ export const OpportunityFeed: React.FC = () => {
 
         {isLoadingMatches && (
           <span className="flex items-center gap-1.5 text-xs text-cyan-400 animate-pulse">
-            <Sparkles className="h-3.5 w-3.5" /> Evaluating matches via Gemini AI...
+            <Sparkles className="h-3.5 w-3.5" /> Evaluating opportunity matches...
           </span>
         )}
       </div>

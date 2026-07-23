@@ -1,9 +1,9 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Sparkles, Target, Award, ShieldCheck, Briefcase } from 'lucide-react';
+import { Sparkles, Award, ShieldCheck, Briefcase } from 'lucide-react';
 
 export const HeroHeader: React.FC = () => {
-  const { userProfile, opportunities, setIsProfileOpen, apiKey } = useApp();
+  const { userProfile, opportunities, setIsProfileOpen } = useApp();
 
   return (
     <div className="relative overflow-hidden border-b border-slate-800/80 bg-gradient-to-b from-[#0F172A] via-[#0B0F19] to-[#0B0F19] py-10 px-4 sm:px-6">
@@ -50,9 +50,9 @@ export const HeroHeader: React.FC = () => {
 
           {/* Engine Mode Pill */}
           <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-xs">
-            <ShieldCheck className={`h-4 w-4 ${apiKey ? 'text-emerald-400' : 'text-amber-400'}`} />
+            <ShieldCheck className="h-4 w-4 text-emerald-400" />
             <span className="text-slate-300">
-              Engine: <strong className="text-white">{apiKey ? 'Google Gemini 1.5 Flash' : 'Smart Heuristic (Zero-Key)'}</strong>
+              Engine: <strong className="text-white">Local Smart Heuristic (Privacy-Safe)</strong>
             </span>
           </div>
 

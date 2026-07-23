@@ -1,32 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { generateCopilotPitchWithGemini } from '../services/geminiService';
 import { X, Sparkles, Copy, Check, Download, Loader2 } from 'lucide-react';
 
 export const CopilotModal: React.FC = () => {
-  const { copilotOpp, setCopilotOpp, userProfile, apiKey } = useApp();
+  const { copilotOpp, setCopilotOpp, userProfile } = useApp();
   const [pitchDraft, setPitchDraft] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    if (copilotOpp) {
-      generatePitch();
-    }
-  }, [copilotOpp]);
-
-  const generatePitch = async () => {
+  const generatePitch = useCallback(async () => {
     if (!copilotOpp) return;
     setIsGenerating(true);
     try {
-      const result = await generateCopilotPitchWithGemini(userProfile, copilotOpp, apiKey);
+      const result = await generateCopilotPitchWithGemini(userProfile, copilotOpp);
       setPitchDraft(result);
     } catch (err) {
       console.error('Failed to generate proposal:', err);
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [copilotOpp, userProfile]);
+
+  useEffect(() => {
+    if (copilotOpp) {
+      generatePitch();
+    }
+  }, [copilotOpp, generatePitch]);
 
   if (!copilotOpp) return null;
 
@@ -65,7 +65,7 @@ export const CopilotModal: React.FC = () => {
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="font-['Outfit'] text-xl font-bold text-white">AI Application Copilot</h2>
+            <h2 className="font-['Outfit'] text-xl font-bold text-white">Application Copilot Agent</h2>
             <p className="text-xs text-slate-400">Customized 1-Page Pitch for <strong>{copilotOpp.title}</strong></p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export const CopilotModal: React.FC = () => {
           {isGenerating ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
               <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
-              <p className="mt-3 text-xs font-semibold text-slate-300">Writing tailored application pitch with Gemini AI...</p>
+              <p className="mt-3 text-xs font-semibold text-slate-300">Writing tailored application pitch...</p>
               <p className="mt-1 text-[11px] text-slate-400">Aligning {userProfile.skills.length} skills with {copilotOpp.organization} criteria</p>
             </div>
           ) : (

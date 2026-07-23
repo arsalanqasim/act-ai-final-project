@@ -140,7 +140,7 @@ Structure:
 ---
 
 ## 5. Security & Zero-Cost Infrastructure
-- No backend servers required; runs entirely in browser.
-- State is persisted in `localStorage`.
-- Gemini API key is stored locally in user settings or loaded via environment variable (`VITE_GEMINI_API_KEY`).
+- **Phase 0** runs entirely in the browser using local heuristics, with state persisted in `localStorage`.
+- **Phase 1** will introduce server-side API routes and persistent storage for production capabilities.
+- Provider API keys must remain server-side only and must never be exposed through `VITE_*` variables or browser storage.
 - Free Vercel hosting deployment.

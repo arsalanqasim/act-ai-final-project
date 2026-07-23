@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { UserProfile, CareerLevel, LocationPreference, OpportunityCategory } from '../types';
-import { X, Save, Plus, User, FileText, Upload } from 'lucide-react';
+import { X, Save, Plus, User, Upload } from 'lucide-react';
 import { ResumeUploadModal } from './ResumeUploadModal';
 
 export const ProfileModal: React.FC = () => {
