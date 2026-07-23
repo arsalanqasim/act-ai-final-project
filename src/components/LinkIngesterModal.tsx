@@ -8,9 +8,11 @@ import {
   AlertTriangle, ShieldCheck, Info, ChevronDown, ChevronUp, Edit3, ArrowLeft
 } from 'lucide-react';
 import { useAccessibleModal } from '../hooks/useAccessibleModal';
+import { useAuth } from '../context/AuthContext';
 
 export const LinkIngesterModal: React.FC = () => {
   const { isIngesterOpen, setIsIngesterOpen, addOpportunity } = useApp();
+  const { isAuthenticated, isSupabaseConfigured } = useAuth();
 
   // Mode state: 'url' | 'text'
   const [mode, setMode] = useState<'url' | 'text'>('url');
@@ -197,6 +199,12 @@ Apply: https://devpost.com/hackathons/agentic-ai-2026`;
                 />
 
                 {/* Live Domain Verification Indicator */}
+                {!isAuthenticated && isSupabaseConfigured && (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-3 text-xs text-amber-300" role="status">
+                    Guest mode can safely parse pasted listing text. Sign in to enable server-side fetching for approved URLs.
+                  </div>
+                )}
+
                 {urlInput.trim() && (
                   <div className="mt-2">
                     {matchedSource ? (

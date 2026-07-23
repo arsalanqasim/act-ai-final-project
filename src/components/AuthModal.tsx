@@ -75,11 +75,12 @@ export const AuthModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="glass-panel relative w-full max-w-md rounded-3xl p-6 sm:p-8 border-slate-700 shadow-2xl my-8">
+      <div role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" className="glass-panel relative w-full max-w-md rounded-3xl p-6 sm:p-8 border-slate-700 shadow-2xl my-8">
         
         {/* Close Button */}
         <button
           id="btn-close-auth-modal"
+          aria-label="Close sign in dialog"
           onClick={() => setIsAuthModalOpen(false)}
           className="absolute right-5 top-5 rounded-xl border border-slate-800 bg-slate-900/60 p-2 text-slate-400 hover:text-white hover:border-slate-700 transition-colors"
         >
@@ -91,7 +92,7 @@ export const AuthModal: React.FC = () => {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-500 to-indigo-600 text-white shadow-lg shadow-cyan-500/20">
             <Sparkles className="h-6 w-6" />
           </div>
-          <h2 className="font-['Outfit'] text-2xl font-bold text-white mt-3">
+          <h2 id="auth-modal-title" className="font-['Outfit'] text-2xl font-bold text-white mt-3">
             {authMode === 'login' ? 'Welcome Back' : 'Create Account'}
           </h2>
           <p className="text-xs text-slate-400 mt-1">

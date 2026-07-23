@@ -16,6 +16,7 @@ export const SettingsModal: React.FC = () => {
         {/* Close Button */}
         <button
           id="btn-close-settings-modal"
+          aria-label="Close settings and privacy"
           onClick={() => setIsSettingsOpen(false)}
           className="absolute right-5 top-5 rounded-xl border border-slate-800 bg-slate-900/60 p-2 text-slate-400 hover:text-white hover:border-slate-700"
         >
@@ -75,7 +76,7 @@ export const SettingsModal: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Gemini Key Storage:</span>
-                <span className="font-semibold text-cyan-400">Server-Side Only (`GEMINI_API_KEY`)</span>
+                <span className="font-semibold text-cyan-400">Server-side provider credential only</span>
               </div>
             </div>
           </div>
@@ -88,7 +89,7 @@ export const SettingsModal: React.FC = () => {
             <ul className="space-y-2 text-[11px] text-slate-400 leading-relaxed">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400 shrink-0 mt-0.5" />
-                <span><strong>Zero Browser Keys:</strong> Neither `GEMINI_API_KEY` nor `VITE_GEMINI_API_KEY` is ever compiled into browser JS bundles or stored in `localStorage`.</span>
+                <span><strong>Zero Browser Keys:</strong> Provider credentials are never compiled into browser JS bundles or stored in `localStorage`.</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400 shrink-0 mt-0.5" />

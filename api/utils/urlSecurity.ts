@@ -195,7 +195,7 @@ export function fetchHtmlSafely(targetUrl: string, maxRedirects = 3): Promise<st
         const response = await fetch(urlToFetch, {
           method: 'GET',
           headers: {
-            'User-Agent': 'OpportunityPulseAI-IngestionBot/1.0 (+https://opportunitypulse.ai)',
+            'User-Agent': 'OpportunityPulseAI-IngestionBot/1.0 (+https://github.com/arsalanqasim/act-ai-final-project)',
             'Accept': 'text/html,application/xhtml+xml,text/plain;q=0.9'
           },
           redirect: 'manual', // Intercept redirects to re-validate security

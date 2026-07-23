@@ -224,6 +224,7 @@ export const ApplicationWorkspaceModal: React.FC = () => {
             onClick={closeWorkspaceModal}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-white transition-colors"
             title="Close workspace"
+            aria-label="Close application workspace"
           >
             <X className="h-4 w-4" />
           </button>
