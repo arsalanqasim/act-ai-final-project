@@ -1,3 +1,9 @@
+import type { SourceType, TrustTier } from '../config/approvedSources';
+import type { VerificationState } from '../utils/trustScore';
+import type { DeadlineStatus } from '../utils/dateUtils';
+
+export type { SourceType, TrustTier, VerificationState, DeadlineStatus };
+
 export type OpportunityCategory = 'Hackathon' | 'Scholarship' | 'Internship' | 'Grant' | 'Tech Event';
 
 export type CareerLevel = 
@@ -41,6 +47,18 @@ export interface Opportunity {
   featured?: boolean;
   postedDate: string;
   sourceUrl?: string;
+  // Phase 2 Provenance & Verification Metadata
+  normalizedUrl?: string;
+  sourceDomain?: string;
+  sourceType?: SourceType;
+  trustTier?: TrustTier;
+  trustScore?: number;
+  verificationState?: VerificationState;
+  trustLabel?: string;
+  trustReasons?: string[];
+  extractionEngine?: EngineMode;
+  extractionConfidence?: number;
+  contentHash?: string;
 }
 
 export interface MatchResult {
@@ -62,8 +80,18 @@ export interface FilterState {
 }
 
 export interface IngestionPayload {
-  rawText?: string;
+  mode: 'url' | 'text';
   url?: string;
+  rawText?: string;
+}
+
+export interface IngestionResultData {
+  opportunity: Opportunity;
+  duplicate?: {
+    isDuplicate: boolean;
+    existingId?: string;
+    message?: string;
+  };
 }
 
 export interface ExtractedResumeProfile {
@@ -118,6 +146,18 @@ export interface CustomOpportunityRow {
   posted_date: string;
   source_url: string | null;
   created_at: string;
+  // Phase 2 Provenance columns
+  normalized_url?: string | null;
+  source_domain?: string | null;
+  source_type?: SourceType;
+  trust_tier?: TrustTier;
+  trust_score?: number;
+  extraction_engine?: EngineMode;
+  extraction_confidence?: number;
+  verification_state?: VerificationState;
+  source_timestamp?: string | null;
+  last_checked_at?: string;
+  content_hash?: string | null;
 }
 
 // Gateway API Types

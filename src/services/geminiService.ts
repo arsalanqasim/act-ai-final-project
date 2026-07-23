@@ -132,6 +132,79 @@ export async function parseUnstructuredTextWithGemini(
 }
 
 /**
+ * Ingests an opportunity via the dedicated server-side ingestion API (/api/ingest).
+ * Supports both URL fetching (approved domains only) and pasted raw text with fallback to local heuristic parsing.
+ */
+export async function ingestOpportunityWithProvenance(payload: {
+  mode: 'url' | 'text';
+  url?: string;
+  rawText?: string;
+}): Promise<{
+  opportunity: Opportunity;
+  duplicate?: { isDuplicate: boolean; existingId?: string; message?: string };
+  engineMode: EngineMode;
+  error?: string;
+}> {
+  try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+
+    if (isSupabaseConfigured) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+    }
+
+    const response = await fetch('/api/ingest', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+
+    const json: unknown = await response.json();
+    if (!json || typeof json !== 'object') {
+      throw new Error('Ingestion service returned an invalid response.');
+    }
+    const result = json as {
+      success?: boolean;
+      data?: { opportunity?: Opportunity; duplicate?: { isDuplicate: boolean; existingId?: string; message?: string } };
+      engineMode?: EngineMode;
+      error?: string;
+    };
+    if (response.ok && result.success && result.data?.opportunity) {
+      return {
+        opportunity: result.data.opportunity,
+        duplicate: result.data.duplicate,
+        engineMode: result.engineMode || 'Secure Server AI Gateway'
+      };
+    }
+
+    if (result.error && payload.mode === 'text') {
+      return {
+        opportunity: parseLocalUnstructuredText(payload.rawText || ''),
+        engineMode: 'Local Heuristic Engine',
+        error: result.error
+      };
+    }
+
+    throw new Error(result.error || 'Ingestion request failed.');
+  } catch (err) {
+    if (payload.mode === 'url') {
+      throw err instanceof Error ? err : new Error('Trusted URL ingestion is unavailable.');
+    }
+    console.warn('Server ingestion route unavailable, falling back to local heuristic parser:', err);
+  }
+
+  const localOpp = parseLocalUnstructuredText(payload.rawText || '');
+  return {
+    opportunity: localOpp,
+    engineMode: 'Local Heuristic Engine'
+  };
+}
+
+/**
  * Parses CV / Resume text using Server AI Gateway if available,
  * falling back to local regex and heuristic extraction.
  */

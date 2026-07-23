@@ -1,4 +1,6 @@
 import { Opportunity, UserProfile, MatchResult, ExtractedResumeProfile } from '../types';
+import { calculateTrustScore } from '../utils/trustScore';
+import { generateOpportunityContentHash, normalizeOpportunityUrl } from '../utils/duplicateHash';
 
 /**
  * Calculates a local heuristic match score (0-100) between a user profile and an opportunity.
@@ -113,23 +115,57 @@ For this ${opp.category.toLowerCase()}, I intend to build a high-impact solution
  */
 export function parseLocalUnstructuredText(rawText: string): Opportunity {
   const lines = rawText.split('\n').filter(l => l.trim().length > 0);
-  const title = lines[0] ? lines[0].slice(0, 60) : 'Ingested Tech Opportunity';
+  const rawTitle = lines[0] ? lines[0].slice(0, 60) : 'Ingested Tech Opportunity';
+  const title = rawTitle.startsWith('http') ? 'Extracted Tech Opportunity' : rawTitle;
+  const organization = 'Web / Ingested Source';
+  const category = rawText.toLowerCase().includes('hackathon') ? 'Hackathon' :
+                   rawText.toLowerCase().includes('scholarship') ? 'Scholarship' :
+                   rawText.toLowerCase().includes('intern') ? 'Internship' : 'Grant';
+  const deadline = '2026-09-01';
+  const location = rawText.toLowerCase().includes('remote') ? 'Remote' : 'Global';
+  const stipendOrPrize = 'See Listing Details';
+  const techStackOrEligibility = ['Python', 'React', 'AI', 'JavaScript'];
+  const description = rawText.slice(0, 180) + '...';
+  const applyUrl = rawText.match(/https:\/\/[^\s]+/)?.[0] || 'https://opportunitypulse.invalid/no-apply-link';
+
+  const trustEval = calculateTrustScore({
+    applyUrl,
+    isUrlFetched: false,
+    deadline,
+    title,
+    organization,
+    description,
+    techStackOrEligibility
+  });
+
+  const contentHash = generateOpportunityContentHash(title, organization, applyUrl);
+  const normalizedUrl = normalizeOpportunityUrl(applyUrl);
 
   return {
     id: `opp_ingest_${Date.now()}`,
-    title: title.startsWith('http') ? 'Extracted Tech Opportunity' : title,
-    organization: 'Web / Ingested Source',
-    category: rawText.toLowerCase().includes('hackathon') ? 'Hackathon' :
-              rawText.toLowerCase().includes('scholarship') ? 'Scholarship' :
-              rawText.toLowerCase().includes('intern') ? 'Internship' : 'Grant',
-    deadline: '2026-09-01',
-    location: rawText.toLowerCase().includes('remote') ? 'Remote' : 'Global',
-    stipendOrPrize: 'See Listing Details',
-    techStackOrEligibility: ['Python', 'React', 'AI', 'JavaScript'],
-    description: rawText.slice(0, 180) + '...',
-    applyUrl: rawText.match(/https?:\/\/[^\s]+/)?.[0] || 'https://google.com',
-    featured: true,
-    postedDate: new Date().toISOString().split('T')[0]
+    title,
+    organization,
+    category,
+    deadline,
+    location,
+    stipendOrPrize,
+    techStackOrEligibility,
+    description,
+    applyUrl,
+    featured: false,
+    postedDate: new Date().toISOString().split('T')[0],
+    sourceUrl: applyUrl,
+    normalizedUrl: normalizedUrl || undefined,
+    sourceDomain: trustEval.domain || undefined,
+    sourceType: trustEval.sourceType,
+    trustTier: trustEval.trustTier,
+    trustScore: trustEval.score,
+    verificationState: trustEval.verificationState,
+    trustLabel: trustEval.label,
+    trustReasons: trustEval.reasons,
+    extractionEngine: 'Local Heuristic Engine',
+    extractionConfidence: 65,
+    contentHash
   };
 }
 

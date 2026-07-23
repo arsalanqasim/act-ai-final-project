@@ -1,11 +1,11 @@
 # 🚀 OpportunityPulse AI — Agentic Opportunity Radar & Career Growth Platform
 
-> **HEC ACT-AI Capstone Project Report — Phase 1 Secure Server-Side AI Platform & Supabase Integration**
+> **HEC ACT-AI Capstone Project Report — Phase 2 Trusted Opportunity Ingestion, Source Provenance, & Verification Workflow**
 >
 > **Author / Maintainer**: Arsalan Qasim
 >
-> **Release**: Phase 1 secure platform foundation
-> **Current Build Status**: Phase 1 Active (Secure Server-Side AI Gateway, Supabase Auth & Postgres RLS Persistence, Transparent Local Fallback Engine)
+> **Release**: Phase 2 Trusted Ingestion & Source Provenance Architecture
+> **Current Build Status**: Active (Phase 2 URL Ingestion & SSRF Protection, Approved Source Registry, Deterministic Trust Score Engine, Duplicate Prevention, Supabase Provenance RLS Schema)
 
 ---
 
@@ -13,9 +13,11 @@
 
 **OpportunityPulse AI** is an Agentic AI-powered Opportunity Radar & Career Growth Platform built for the **HEC ACT-AI Capstone Project**. It cuts through social media noise to help university students, fresh graduates, and tech youth discover, match, and apply for high-signal career opportunities (AI Hackathons, International Scholarships, Remote Internships, and Tech Grants).
 
+Phase 2 upgrades the raw "text paste" prototype into a production-grade **Trusted Ingestion & Provenance Workflow**, featuring strict SSRF security controls, an approved source registry allowlist, deterministic trust scores, duplicate opportunity detection, and honest verification badges.
+
 ---
 
-## 🏗️ 2. Phase 1 Architecture & Security Model
+## 🏗️ 2. Agentic Architecture & Security Model
 
 ```
  ┌────────────────────────────────────────────────────────────────────────┐
@@ -29,136 +31,152 @@
  └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Zero-Key Browser Security Protocol
-- **Server-Only LLM API**: `GEMINI_API_KEY` is strictly a server-side environment variable processed inside Vercel Serverless Functions (`api/ai.ts`). No AI SDK or provider key is compiled into browser JS bundles, stored in `localStorage`, or requested from users in UI forms.
-- **Supabase Row Level Security**: User profiles (`profiles`), bookmarks (`saved_opportunities`), and custom ingested listings (`custom_opportunities`) are isolated per-user in Supabase Postgres with strict RLS policies (`auth.uid() = id`).
-- **Transparent Local Fallback Engine**: If backend services or `GEMINI_API_KEY` environment variables are unconfigured, the application transparently operates using a local smart heuristic fallback engine. The active engine mode is explicitly labeled across the UI ("Secure Server AI Gateway" vs "Local Heuristic Engine").
+### Trusted URL Ingestion & SSRF Defense Model (`api/utils/urlSecurity.ts` & `api/ingest.ts`)
+- **HTTPS Enforcement**: Ingestion requests permit HTTPS URLs only (`https:` protocol).
+- **Credentials & Port Filtering**: Rejects URLs containing embedded user credentials (`username:password@host`) and non-standard ports (allowed: standard 443).
+- **Network Isolation & SSRF Prevention**: Rejects loopback addresses (`127.0.0.1`, `::1`), private IP ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), link-local IPs (`169.254.0.0/16`), AWS metadata endpoints (`169.254.169.254`), and internal hostnames (`localhost`, `*.local`, `*.internal`).
+- **Approved Registry Allowlist**: Validates target hostnames against an explicit registry of approved opportunity domains (`devpost.com`, `mlh.io`, `hec.gov.pk`, `fulbright.org`, `kaggle.com`, `lablab.ai`, etc.).
+- **Redirect Re-Validation**: Intercepts HTTP redirects (301/302/307/308) and re-evaluates the redirect target against the full SSRF and domain security rules before following (max 3 redirects).
+- **Resource Constraints**: Implements short request timeouts (6s), payload size limits (500KB max HTML body), safe User-Agent headers, and HTML tag sanitization.
+- **Client Security Isolation**: Unauthenticated guests use keyless local heuristic parsing for text. Server-side URL fetching is strictly restricted to authenticated users.
 
 ---
 
-## ⚡ 3. Feature Matrix & Build Comparison
+## 🛡️ 3. Approved Sources Registry (`src/config/approvedSources.ts`)
 
-| Feature | Phase 0 Prototype | Phase 1 Platform (Current Build) |
-| :--- | :--- | :--- |
-| **Authentication** | Local Storage Demo Account | **Supabase Auth** (Email/Password, Async Session Restoration) |
-| **User Data Storage** | `localStorage` | **Supabase Postgres + RLS** (Per-User Scoped Persistence) |
-| **AI Processing Gateway** | Local Rule Heuristics | **Vercel Serverless Gateway (`api/ai.ts`)** + Google Gemini |
-| **API Key Security** | Zero-Key Protocol | **Server-Only `GEMINI_API_KEY`** (Zero Browser Secret Leaks) |
-| **Fallback System** | N/A | **Transparent Heuristic Fallback Engine** (Zero-Key Execution) |
-| **UI Engine Transparency** | Static Specs | **Dynamic Active Engine Badges** on Score Cards & Modals |
+| Domain | Source Name | Source Type | Trust Tier | Fetch Supported |
+| :--- | :--- | :--- | :--- | :--- |
+| `devpost.com` | Devpost | Approved Platform | Tier 2 Verified | Yes |
+| `mlh.io` | Major League Hacking (MLH) | Official Source | Tier 1 Official | Yes |
+| `github.com` | GitHub Education & Grants | Approved Platform | Tier 2 Verified | Yes |
+| `hec.gov.pk` | Higher Education Commission Pakistan | Official Source | Tier 1 Official | Yes |
+| `fulbright.org` | Fulbright Program | Official Source | Tier 1 Official | Yes |
+| `usefp.org` | USEFP Pakistan | Official Source | Tier 1 Official | Yes |
+| `erasmus-plus.ec.europa.eu` | Erasmus+ European Commission | Official Source | Tier 1 Official | Yes |
+| `lablab.ai` | Lablab.ai | Approved Platform | Tier 2 Verified | Yes |
+| `kaggle.com` | Kaggle Competitions | Approved Platform | Tier 2 Verified | Yes |
+| `unstop.com` | Unstop Competitions | Approved Platform | Tier 2 Verified | Yes |
+| `hackerearth.com` | HackerEarth | Approved Platform | Tier 2 Verified | Yes |
+| `ycombinator.com` | Y Combinator | Official Source | Tier 1 Official | Yes |
 
----
-
-## 💾 4. Database Schema & RLS Policies (`supabase/migrations/001_phase1_core.sql`)
-
-### 1. `profiles`
-- Linked 1:1 with `auth.users(id)`
-- Stores user career level, major, skills, target categories, location preference, and bio.
-- **RLS**: `auth.uid() = id` (Users can select, insert, and update only their own profile).
-
-### 2. `saved_opportunities`
-- Stores user bookmarked opportunity IDs (`user_id`, `opportunity_id`, `created_at`).
-- Unique constraint on `(user_id, opportunity_id)`.
-- **RLS**: `auth.uid() = user_id` (Users can select, insert, and delete only their own saved items).
-
-### 3. `custom_opportunities`
-- Stores user-ingested listings (`id`, `user_id`, `title`, `organization`, `category`, `deadline`, `location`, `stipend_or_prize`, `tech_stack_or_eligibility`, `description`, `apply_url`, `featured`, `posted_date`, `source_url`, `created_at`).
-- **RLS**: `auth.uid() = user_id` (Users can select, insert, update, and delete only their own ingested listings).
+*Unapproved external domains cannot be fetched by the server; the UI instructs users to paste raw listing text instead for safe parsing.*
 
 ---
 
-## 🌐 5. Secure Server-Side AI Gateway (`api/ai.ts`)
+## 📊 4. Deterministic Trust Score & Verification Rules (`src/utils/trustScore.ts`)
 
-The server-side gateway endpoint operates under `api/ai.ts` and enforces:
-- **POST Method Only**: Returns HTTP 405 Method Not Allowed for non-POST requests.
-- **Request Size Limiting**: Rejects payloads exceeding 100KB with HTTP 400.
-- **Zod Input Schema Validation**: Validates inputs across 4 discriminated operations (`evaluate-match`, `generate-pitch`, `ingest-text`, `extract-resume`).
-- **JWT Authorization Check**: Requires and validates `Authorization: Bearer <access_token>` against Supabase Auth before any server-side AI request.
-- **Structured LLM Output**: Uses `@google/genai` in JSON mode and validates every structured response with a server-side Zod schema before returning it.
-- **Prompt Injection Defense**: Isolates untrusted user posts and CV text inside `<untrusted_input>` tags separated from system instructions.
-- **Sanitized Error Responses**: Never exposes API keys, raw provider errors, stack traces, or internal prompts.
+Trust scores (0–100) are evaluated deterministically without relying on opaque AI scores:
+
+1. **Registry Domain Tier (+35 max points)**:
+   - Tier 1 Official Domain: **+35 pts**
+   - Tier 2 Approved Platform Domain: **+25 pts**
+   - Community Submitted / Unapproved Domain: **+10 pts**
+2. **HTTPS & Application URL (+15 points)**: Valid secure application link matching HTTPS.
+3. **Deadline & Freshness (+15 points)**: Active future deadline format (+15 pts). Expired deadlines cap total trust score at 40 max.
+4. **Metadata Completeness (+25 points)**: Title >= 5 chars, Organization, Eligibility tags, and Description >= 40 chars.
+
+### Verification States & Labels Legend
+- **`Official Source` (`source-confirmed`)**: Fetched directly from a Tier 1 official domain with high trust score (>= 75).
+- **`Approved Platform` (`source-confirmed`)**: Fetched directly from a Tier 2 approved platform with high trust score (>= 75).
+- **`Community Submitted` (`unverified`)**: Pasted text or community listing without direct server URL fetch confirmation.
+- **`Needs Review` (`needs-review`)**: Trust score < 50 or incomplete metadata fields.
+- **`Expired` (`expired`)**: Past specified deadline.
+
+*Honest Verification Policy: An opportunity is labeled "Verified / Source Confirmed" ONLY when fetched directly from an approved registry domain.*
 
 ---
 
-## ⚙️ 6. Environment Setup & Configuration
+## 📅 5. Expiry & Freshness Handling (`src/utils/dateUtils.ts`)
 
-Copy `.env.example` to set up environment variables for local testing or Vercel deployment:
+Calculates standardized status:
+- **`Open`**: Active deadline with > 7 days remaining.
+- **`Closing soon`**: Active deadline with <= 7 days remaining.
+- **`Expired`**: Past specified deadline.
+- **`Date unknown`**: Flexible or unspecified deadline string.
 
-```bash
-# -----------------------------------------------------------------------------
-# BROWSER / SUPABASE PUBLIC CONFIGURATION (Safe for VITE_ prefix)
-# -----------------------------------------------------------------------------
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+*Expired opportunities remain viewable if saved by a user, but are marked with a red Expired badge, trust score capped at 40, and excluded from high-priority top match promotion.*
 
-# -----------------------------------------------------------------------------
-# SERVER-ONLY BACKEND CONFIGURATION (NEVER expose to browser/VITE_)
-# -----------------------------------------------------------------------------
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-supabase-anon-key
-GEMINI_API_KEY=your-server-side-gemini-api-key
+---
+
+## 🔄 6. Duplicate Opportunity Prevention (`src/utils/duplicateHash.ts`)
+
+- **URL Normalization**: Lowercases scheme/host, strips tracking parameters (`utm_source`, `utm_medium`, `ref`, `fbclid`), fragment IDs, and trailing slashes.
+- **Deterministic Content Hash**: Generates an FNV-1a hash key based on `normalizedTitle|normalizedOrg|normalizedUrl`.
+- **Database Indexing**: Unique conditional indexes on `(user_id, normalized_url)` and `(user_id, content_hash)` in Supabase Postgres.
+- **Duplicate Result UI**: If a duplicate exists, the modal alerts the user with an option to view or update the existing opportunity record.
+
+---
+
+## 💾 7. Database Migration (`supabase/migrations/002_phase2_opportunity_provenance.sql`)
+
+Applies Phase 2 schema extensions:
+```sql
+ALTER TABLE public.custom_opportunities
+  ADD COLUMN IF NOT EXISTS normalized_url TEXT,
+  ADD COLUMN IF NOT EXISTS source_domain TEXT,
+  ADD COLUMN IF NOT EXISTS source_type TEXT CHECK (source_type IN ('official', 'approved-platform', 'community-submitted', 'user-pasted')) DEFAULT 'user-pasted',
+  ADD COLUMN IF NOT EXISTS trust_tier TEXT DEFAULT 'tier-3-community',
+  ADD COLUMN IF NOT EXISTS trust_score INTEGER CHECK (trust_score BETWEEN 0 AND 100) DEFAULT 50,
+  ADD COLUMN IF NOT EXISTS extraction_engine TEXT DEFAULT 'Local Heuristic Engine',
+  ADD COLUMN IF NOT EXISTS extraction_confidence INTEGER CHECK (extraction_confidence BETWEEN 0 AND 100) DEFAULT 70,
+  ADD COLUMN IF NOT EXISTS verification_state TEXT CHECK (verification_state IN ('unverified', 'source-confirmed', 'needs-review', 'expired')) DEFAULT 'unverified',
+  ADD COLUMN IF NOT EXISTS source_timestamp TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS last_checked_at TIMESTAMPTZ DEFAULT NOW(),
+  ADD COLUMN IF NOT EXISTS content_hash TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_custom_opps_user_normalized_url
+  ON public.custom_opportunities(user_id, normalized_url)
+  WHERE normalized_url IS NOT NULL AND normalized_url <> '';
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_custom_opps_user_content_hash
+  ON public.custom_opportunities(user_id, content_hash)
+  WHERE content_hash IS NOT NULL AND content_hash <> '';
 ```
 
-> [!WARNING]
-> Never set `VITE_GEMINI_API_KEY`. `GEMINI_API_KEY` must remain a server-only environment variable.
+---
+
+## 💻 8. Automated Testing & Verification Commands
+
+```bash
+# Run unit test suite (Vitest)
+npm test
+
+# Run ESLint validation
+npm run lint
+
+# Build production bundle
+npm run build
+```
+
+**Test Suite Coverage (`src/__tests__/`)**:
+- `urlSecurity.test.ts`: SSRF private IP blocking, HTTPS validation, credentials rejection, approved domain allowlist matching, HTML text extraction.
+- `trustScore.test.ts`: Trust score calculation, verification state assignment, explanation reasons.
+- `dateUtils.test.ts`: Deadline status parser (Open, Closing soon, Expired, Date unknown).
+- `duplicateHash.test.ts`: Tracking parameter stripping, FNV-1a content hash stability.
 
 ---
 
-## 🚀 7. Owner Setup & Manual Deployment Roadmap
+## ⚙️ 9. Owner Setup & Manual Supabase Actions
 
-### A. Supabase Project & SQL Setup
-1. Log in to [Supabase Console](https://supabase.com) and create a new project.
-2. Go to **SQL Editor** in the Supabase Dashboard.
-3. Paste the contents of `supabase/migrations/001_phase1_core.sql` and run the script.
-4. Verify under **Table Editor** that `profiles`, `saved_opportunities`, and `custom_opportunities` exist with Row Level Security (RLS) enabled.
-5. In **Authentication -> Providers**, ensure Email provider is enabled. (Optional: Disable "Confirm email" if you desire instant signups without email verification).
-
-### B. Vercel Project Deployment
-1. Import the repository into Vercel.
-2. In Vercel Project Settings -> **Environment Variables**, add:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `GEMINI_API_KEY`
-3. Deploy the application.
+1. Log in to [Supabase Console](https://supabase.com) -> Select your project -> **SQL Editor**.
+2. Run `supabase/migrations/001_phase1_core.sql` (if not already applied).
+3. Run `supabase/migrations/002_phase2_opportunity_provenance.sql`.
+4. Verify under **Table Editor** -> `custom_opportunities` that provenance columns and unique indexes are active.
 
 ---
 
-## 💻 8. Local Development & Verification
+## ⚠️ 10. Limitations & Exclusions
 
-### Prerequisites
-- Node.js (v18.0.0 or higher)
-- npm (v9.0.0 or higher)
-
-### Instructions
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Start the local Vite development server:
-   ```bash
-   npm run dev
-   ```
-   *(The dev server automatically proxies `/api/ai` endpoints via the integrated dev middleware plugin in `vite.config.ts`)*.
-3. Run Quality Verification Commands:
-   ```bash
-   npm run lint
-   npm run build
-   ```
+- **No Unrestricted Web Scraping**: URL fetching is strictly limited to approved registry domains.
+- **No Automatic Truth Guarantee**: AI extraction parses text, but official status requires registry domain verification.
+- **Out of Scope for Phase 2**: Resend email alerts, social media scraping, PDF/DOCX parsing, public moderation queues, automatic GitHub pushing.
 
 ---
 
-## 🎓 9. Step-by-Step Evaluator Walkthrough
+## 🎓 11. Step-by-Step Evaluator Walkthrough
 
-1. **Local Preview / Guest Mode**:
-   - Open the app without setting environment variables.
-   - Observe the "Guest Preview" badge in the navbar and "Active AI Engine: Local Heuristic Engine".
-   - Test matching, pitch generation, CV parsing, and link ingestion. All features operate keylessly.
-2. **Supabase Auth & Data Scoping**:
-   - Click **Log In / Sign Up**. Register a new account.
-   - Update your profile skills or target categories. Refresh the browser; verify user profile persistence.
-   - Toggle opportunity bookmarks. Sign out and sign back in to verify data scoping.
-3. **Engine Transparency & Privacy Modal**:
-   - Click the gear icon (**Engine Status & Data Privacy**).
-   - Observe real-time status of Supabase Postgres RLS Auth and active AI processing gateway mode.
+1. **Dual Ingestion Modes**: Click **Ingest Opportunity** in the top navigation. Switch between **Fetch Approved Source URL** and **Paste Raw Listing Text**.
+2. **Approved Domain Real-time Verification**: Type `https://devpost.com/hackathons/agentic-ai-2026` -> Observe green check badge for approved platform. Type `https://unapproved.com` -> Observe informative warning asking user to paste text.
+3. **Editable Preview & Trust Score Breakdown**: Click **Extract & Review Listing**. Review extracted fields (Title, Org, Deadline, Tech Stack, Description), edit any field, and view the Trust Score & Rationale panel.
+4. **Duplicate Prevention**: Ingest the same URL twice -> Observe the Duplicate Opportunity Warning Banner preventing duplicate creation.
+5. **Card Provenance Badges**: Observe opportunity cards rendering domain tags (`devpost.com`), verification state badges (`Verified Source` vs `Community`), and deadline status pills (`Closing soon` / `Expired`).

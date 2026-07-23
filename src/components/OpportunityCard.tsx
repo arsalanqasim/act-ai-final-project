@@ -1,7 +1,8 @@
 import React from 'react';
 import { Opportunity, MatchResult } from '../types';
 import { useApp } from '../context/AppContext';
-import { Calendar, MapPin, DollarSign, Bookmark, Sparkles, ExternalLink, Check } from 'lucide-react';
+import { getDeadlineStatus } from '../utils/dateUtils';
+import { Calendar, MapPin, DollarSign, Bookmark, Sparkles, ExternalLink, Check, ShieldCheck, Globe, AlertCircle } from 'lucide-react';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
@@ -15,6 +16,15 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, m
   const score = matchResult?.score ?? 75;
   const verdict = matchResult?.verdict ?? 'Good Match';
   const matchingSkills = matchResult?.matchingSkills ?? [];
+
+  const deadlineAnalysis = getDeadlineStatus(opportunity.deadline);
+  const hasActionableApplyUrl = (() => {
+    try {
+      return new URL(opportunity.applyUrl).protocol === 'https:' && !opportunity.applyUrl.includes('.invalid/');
+    } catch {
+      return false;
+    }
+  })();
 
   // Match score color badge logic
   const getBadgeStyle = (s: number) => {
@@ -38,18 +48,35 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, m
   return (
     <div 
       id={`opp-card-${opportunity.id}`}
-      className="glass-panel glass-panel-hover flex flex-col justify-between rounded-2xl p-5 relative overflow-hidden group"
+      className={`glass-panel glass-panel-hover flex flex-col justify-between rounded-2xl p-5 relative overflow-hidden group ${
+        deadlineAnalysis.isExpired ? 'opacity-75 border-slate-800' : ''
+      }`}
     >
       
-      {/* Top Row: Category & Save Bookmark */}
+      {/* Top Row: Category, Verification Pill & Save Bookmark */}
       <div>
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             {/* Category Tag */}
             <span className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${getCategoryColor(opportunity.category)}`}>
               {opportunity.category}
             </span>
+
+            {/* Verification State Badge */}
+            {opportunity.verificationState === 'source-confirmed' ? (
+              <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                <ShieldCheck className="h-3 w-3" /> {opportunity.trustLabel || 'Verified Source'}
+              </span>
+            ) : deadlineAnalysis.isExpired ? (
+              <span className="rounded-lg bg-red-500/10 border border-red-500/30 px-2 py-0.5 text-[11px] font-bold text-red-400 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" /> Expired
+              </span>
+            ) : (
+              <span className="rounded-lg bg-slate-800 border border-slate-700 px-2 py-0.5 text-[11px] font-medium text-slate-300 flex items-center gap-1">
+                <Globe className="h-3 w-3 text-slate-400" /> {opportunity.trustLabel || 'Community'}
+              </span>
+            )}
 
             {/* Featured Badge */}
             {opportunity.featured && (
@@ -103,7 +130,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, m
         <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-slate-400 border-t border-slate-800/80 pt-3">
           <div className="flex items-center gap-1.5 truncate">
             <Calendar className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
-            <span className="truncate">Deadline: <strong className="text-slate-200">{opportunity.deadline}</strong></span>
+            <span className="truncate">Deadline: <strong className={deadlineAnalysis.isExpired ? 'text-red-400' : 'text-slate-200'}>{deadlineAnalysis.formattedDate}</strong></span>
           </div>
 
           <div className="flex items-center gap-1.5 truncate">
@@ -111,9 +138,14 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, m
             <span className="truncate">{opportunity.location}</span>
           </div>
 
-          <div className="col-span-2 flex items-center gap-1.5 truncate text-emerald-400 font-medium">
+          <div className="flex items-center gap-1.5 truncate text-emerald-400 font-medium">
             <DollarSign className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">{opportunity.stipendOrPrize}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 truncate font-mono text-[11px] text-slate-400">
+            <Globe className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
+            <span className="truncate">{opportunity.sourceDomain || 'User Ingested'}</span>
           </div>
         </div>
 
@@ -145,16 +177,27 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, m
         </button>
 
         {/* Direct Apply Button */}
-        <a
-          id={`link-apply-${opportunity.id}`}
-          href={opportunity.applyUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 text-xs font-semibold transition-colors"
-        >
-          <span>Apply</span>
-          <ExternalLink className="h-3.5 w-3.5" />
-        </a>
+        {hasActionableApplyUrl ? (
+          <a
+            id={`link-apply-${opportunity.id}`}
+            href={opportunity.applyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 text-xs font-semibold transition-colors"
+          >
+            <span>Apply</span>
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        ) : (
+          <span
+            id={`link-apply-${opportunity.id}`}
+            aria-disabled="true"
+            className="flex cursor-not-allowed items-center justify-center gap-1 rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2 text-xs font-semibold text-slate-500"
+            title="No verified application link was supplied"
+          >
+            <span>Link unavailable</span>
+          </span>
+        )}
 
       </div>
 

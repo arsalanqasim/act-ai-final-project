@@ -105,7 +105,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               applyUrl: row.apply_url,
               featured: row.featured,
               postedDate: row.posted_date,
-              sourceUrl: row.source_url || undefined
+              sourceUrl: row.source_url || undefined,
+              normalizedUrl: row.normalized_url || undefined,
+              sourceDomain: row.source_domain || undefined,
+              sourceType: row.source_type || 'user-pasted',
+              trustTier: row.trust_tier || 'tier-3-community',
+              trustScore: row.trust_score ?? 50,
+              verificationState: row.verification_state || 'unverified',
+              extractionEngine: row.extraction_engine || 'Local Heuristic Engine',
+              extractionConfidence: row.extraction_confidence ?? 70,
+              contentHash: row.content_hash || undefined
             }));
             setCustomOpportunities(opps);
           }
@@ -175,7 +184,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           featured: opp.featured ?? false,
           posted_date: opp.postedDate,
           source_url: opp.sourceUrl || null,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          normalized_url: opp.normalizedUrl || null,
+          source_domain: opp.sourceDomain || null,
+          source_type: opp.sourceType || 'user-pasted',
+          trust_tier: opp.trustTier || 'tier-3-community',
+          trust_score: opp.trustScore ?? 50,
+          extraction_engine: opp.extractionEngine || 'Local Heuristic Engine',
+          extraction_confidence: opp.extractionConfidence ?? 70,
+          verification_state: opp.verificationState || 'unverified',
+          content_hash: opp.contentHash || null
         };
 
         const { error } = await supabase
@@ -184,9 +202,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         if (error) {
           console.error('Error inserting custom opportunity to Supabase:', error);
+          setCustomOpportunities(prev => prev.filter(candidate => candidate.id !== opp.id));
+          throw new Error(error.code === '23505'
+            ? 'This opportunity is already in your collection.'
+            : 'Could not save this opportunity. Please try again.');
         }
       } catch (e) {
         console.error('Failed to insert custom opportunity to Supabase:', e);
+        setCustomOpportunities(prev => prev.filter(candidate => candidate.id !== opp.id));
+        throw e;
       }
     } else {
       const existing = JSON.parse(localStorage.getItem(LOCAL_OPPS_KEY) || '[]');
