@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { generateCopilotPitchWithGemini } from '../services/geminiService';
-import { X, Sparkles, Copy, Check, Download, Loader2 } from 'lucide-react';
+import { EngineMode } from '../types';
+import { X, Sparkles, Copy, Check, Download, Loader2, Cpu } from 'lucide-react';
 
 export const CopilotModal: React.FC = () => {
   const { copilotOpp, setCopilotOpp, userProfile } = useApp();
   const [pitchDraft, setPitchDraft] = useState('');
+  const [pitchEngineMode, setPitchEngineMode] = useState<EngineMode>('Local Heuristic Engine');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -13,8 +15,9 @@ export const CopilotModal: React.FC = () => {
     if (!copilotOpp) return;
     setIsGenerating(true);
     try {
-      const result = await generateCopilotPitchWithGemini(userProfile, copilotOpp);
-      setPitchDraft(result);
+      const { pitch, engineMode } = await generateCopilotPitchWithGemini(userProfile, copilotOpp);
+      setPitchDraft(pitch);
+      setPitchEngineMode(engineMode);
     } catch (err) {
       console.error('Failed to generate proposal:', err);
     } finally {
@@ -60,14 +63,24 @@ export const CopilotModal: React.FC = () => {
         </button>
 
         {/* Modal Header */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 text-white shadow-lg shadow-cyan-500/20">
-            <Sparkles className="h-5 w-5" />
+        <div className="flex flex-wrap items-center justify-between gap-3 pr-10">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 text-white shadow-lg shadow-cyan-500/20">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-['Outfit'] text-xl font-bold text-white">Application Copilot Agent</h2>
+              <p className="text-xs text-slate-400">Customized 1-Page Pitch for <strong>{copilotOpp.title}</strong></p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-['Outfit'] text-xl font-bold text-white">Application Copilot Agent</h2>
-            <p className="text-xs text-slate-400">Customized 1-Page Pitch for <strong>{copilotOpp.title}</strong></p>
-          </div>
+
+          <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${
+            pitchEngineMode === 'Secure Server AI Gateway'
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+              : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+          }`}>
+            <Cpu className="h-3 w-3" /> {pitchEngineMode}
+          </span>
         </div>
 
         {/* Generated Markdown Pitch Display */}

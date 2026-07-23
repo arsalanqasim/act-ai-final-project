@@ -1,9 +1,11 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { X, ShieldCheck, Cpu, Lock, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { X, ShieldCheck, Cpu, Lock, CheckCircle2, Server } from 'lucide-react';
 
 export const SettingsModal: React.FC = () => {
-  const { isSettingsOpen, setIsSettingsOpen } = useApp();
+  const { isSettingsOpen, setIsSettingsOpen, engineMode } = useApp();
+  const { isSupabaseConfigured, isAuthenticated, currentUser } = useAuth();
 
   if (!isSettingsOpen) return null;
 
@@ -26,41 +28,75 @@ export const SettingsModal: React.FC = () => {
             <Cpu className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="font-['Outfit'] text-xl font-bold text-white">Engine Status & Data Privacy</h2>
-            <p className="text-xs text-slate-400">Phase 0 Zero-Key Execution Specs</p>
+            <h2 className="font-['Outfit'] text-xl font-bold text-white">Engine Status & Data Security</h2>
+            <p className="text-xs text-slate-400">Phase 1 Secure Architecture & Privacy Protocol</p>
           </div>
         </div>
 
         <div className="mt-6 space-y-4">
           
-          {/* Active Engine Status Banner */}
-          <div className="rounded-2xl border bg-emerald-500/10 border-emerald-500/30 p-4 text-xs text-emerald-300">
+          {/* Active AI Engine Banner */}
+          <div className={`rounded-2xl border p-4 text-xs ${
+            engineMode === 'Secure Server AI Gateway'
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+              : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+          }`}>
             <div className="flex items-center gap-2 font-semibold">
-              <ShieldCheck className="h-4 w-4 text-emerald-400" />
-              <span>Primary Engine: Local Smart Heuristic Engine Active</span>
+              <ShieldCheck className="h-4 w-4 shrink-0" />
+              <span>Active AI Engine: {engineMode}</span>
             </div>
             <p className="mt-1 text-[11px] text-slate-300 leading-relaxed">
-              No API key is required. All opportunity matching, text parsing, and proposal generation runs 100% locally in your browser.
+              {engineMode === 'Secure Server AI Gateway'
+                ? 'Server-side Vercel AI Gateway is actively processing matching, text ingestion, and pitch drafts via official Google Gemini APIs.'
+                : 'Server AI route is unconfigured or operating in local mode. All opportunity matching, text parsing, and proposal drafts run 100% locally on your device via our smart heuristic fallback engine.'}
             </p>
           </div>
 
-          {/* Privacy & Architecture Details */}
+          {/* Backend & Auth Status */}
           <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-4 text-xs">
             <h3 className="font-semibold text-slate-200 flex items-center gap-1.5">
-              <Lock className="h-3.5 w-3.5 text-cyan-400" /> Privacy & Security Protocols
+              <Server className="h-3.5 w-3.5 text-cyan-400" /> Backend Environment & Authentication Status
+            </h3>
+
+            <div className="space-y-2 text-[11px]">
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-slate-400">Supabase Postgres Auth:</span>
+                <span className={`font-semibold ${isSupabaseConfigured ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {isSupabaseConfigured ? 'Connected & Row Level Security Enabled' : 'Unconfigured (Local Guest Preview Active)'}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-slate-400">User Session Scoping:</span>
+                <span className="font-semibold text-slate-200">
+                  {isAuthenticated && currentUser ? `Authenticated (${currentUser.email})` : 'Guest Preview Mode'}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Gemini Key Storage:</span>
+                <span className="font-semibold text-cyan-400">Server-Side Only (`GEMINI_API_KEY`)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Privacy & Security Guarantees */}
+          <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-4 text-xs">
+            <h3 className="font-semibold text-slate-200 flex items-center gap-1.5">
+              <Lock className="h-3.5 w-3.5 text-indigo-400" /> Hard Security Rules
             </h3>
             <ul className="space-y-2 text-[11px] text-slate-400 leading-relaxed">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400 shrink-0 mt-0.5" />
-                <span><strong>Zero Secret Exposure:</strong> Frontend code contains no hardcoded or public API keys.</span>
+                <span><strong>Zero Browser Keys:</strong> Neither `GEMINI_API_KEY` nor `VITE_GEMINI_API_KEY` is ever compiled into browser JS bundles or stored in `localStorage`.</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400 shrink-0 mt-0.5" />
-                <span><strong>Local Processing:</strong> Uploaded CVs and pasted opportunity text are processed directly on your device and never sent to external servers.</span>
+                <span><strong>No Key Prompting:</strong> Users are never asked to supply their own API keys in UI forms or settings.</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400 shrink-0 mt-0.5" />
-                <span><strong>Phase 1 Roadmap:</strong> Secure server-side AI model integration will be introduced in Phase 1 via encrypted backend proxies.</span>
+                <span><strong>Row Level Security:</strong> User profiles, saved bookmarks, and custom opportunities are isolated strictly per-user in Supabase Postgres.</span>
               </li>
             </ul>
           </div>

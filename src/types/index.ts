@@ -10,6 +10,8 @@ export type CareerLevel =
 
 export type LocationPreference = 'Remote' | 'Pakistan' | 'Global' | 'Hybrid';
 
+export type EngineMode = 'Secure Server AI Gateway' | 'Local Heuristic Engine';
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -23,10 +25,6 @@ export interface UserProfile {
   emailNotifications: boolean;
   isOnboarded?: boolean;
   createdAt?: string;
-}
-
-export interface UserAccount extends UserProfile {
-  passwordHash: string; // Stored securely in local user store
 }
 
 export interface Opportunity {
@@ -52,6 +50,7 @@ export interface MatchResult {
   matchingSkills: string[];
   missingSkills: string[];
   reasons: string[];
+  engineMode?: EngineMode;
 }
 
 export interface FilterState {
@@ -76,4 +75,65 @@ export interface ExtractedResumeProfile {
   targetCategories: OpportunityCategory[];
   preferredLocation: LocationPreference;
   bio: string;
+  engineMode?: EngineMode;
+}
+
+// Database Row Types (Supabase Postgres mappings)
+export interface ProfileRow {
+  id: string;
+  name: string;
+  email: string;
+  major: string;
+  academic_level: CareerLevel;
+  skills: string[];
+  target_categories: OpportunityCategory[];
+  preferred_location: LocationPreference;
+  bio: string;
+  email_notifications: boolean;
+  is_onboarded: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SavedOpportunityRow {
+  id: string;
+  user_id: string;
+  opportunity_id: string;
+  created_at: string;
+}
+
+export interface CustomOpportunityRow {
+  id: string;
+  user_id: string;
+  title: string;
+  organization: string;
+  category: OpportunityCategory;
+  deadline: string;
+  location: string;
+  stipend_or_prize: string;
+  tech_stack_or_eligibility: string[];
+  description: string;
+  apply_url: string;
+  featured: boolean;
+  posted_date: string;
+  source_url: string | null;
+  created_at: string;
+}
+
+// Gateway API Types
+export type AiOperation = 'evaluate-match' | 'generate-pitch' | 'ingest-text' | 'extract-resume';
+
+export interface AiGatewayRequest {
+  operation: AiOperation;
+  profile?: UserProfile;
+  opportunity?: Opportunity;
+  rawText?: string;
+  resumeText?: string;
+}
+
+export interface AiGatewayResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  engineMode: EngineMode;
 }

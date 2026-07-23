@@ -1,154 +1,405 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserAccount, UserProfile, OpportunityCategory, LocationPreference } from '../types';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { UserProfile, OpportunityCategory, LocationPreference, ProfileRow } from '../types';
 import { INITIAL_USER_PROFILE } from '../services/mockData';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+
+export interface SignupInput {
+  name: string;
+  email: string;
+  password: string;
+  major: string;
+  academicLevel: UserProfile['academicLevel'];
+  skills?: string[];
+  targetCategories?: OpportunityCategory[];
+  preferredLocation?: LocationPreference;
+  bio?: string;
+}
 
 interface AuthContextType {
   currentUser: UserProfile | null;
+  supabaseUser: SupabaseUser | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => { success: boolean; error?: string };
-  signup: (accountData: Omit<UserAccount, 'id' | 'createdAt'>) => { success: boolean; error?: string };
-  logout: () => void;
-  updateUserAccount: (updated: Partial<UserProfile>) => void;
+  isGuest: boolean;
+  isSupabaseConfigured: boolean;
+  isAuthLoading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (input: SignupInput) => Promise<{ success: boolean; error?: string; requiresConfirmation?: boolean; message?: string }>;
+  logout: () => Promise<void>;
+  continueAsGuest: () => void;
+  updateUserAccount: (updated: Partial<UserProfile>) => Promise<void>;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
   authMode: 'login' | 'signup';
   setAuthMode: (mode: 'login' | 'signup') => void;
   isWizardOpen: boolean;
   setIsWizardOpen: (open: boolean) => void;
-  completeOnboarding: (skills: string[], categories: OpportunityCategory[], location: LocationPreference) => void;
+  completeOnboarding: (skills: string[], categories: OpportunityCategory[], location: LocationPreference) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const LOCAL_USERS_DB_KEY = 'opp_pulse_users_db_v2';
-const LOCAL_SESSION_KEY = 'opp_pulse_active_session_v2';
-
-// Seed initial default user account if none exists
-const SEEDED_DEFAULT_USER: UserAccount = {
-  ...INITIAL_USER_PROFILE,
-  passwordHash: 'demo123', // Demo default password for grader convenience
-  isOnboarded: true,
-  createdAt: new Date().toISOString()
-};
+const LOCAL_GUEST_PROFILE_KEY = 'opp_pulse_guest_profile_v2';
+const LOCAL_GUEST_FLAG_KEY = 'opp_pulse_is_guest_v2';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Database of registered users
-  const [usersDb, setUsersDb] = useState<Record<string, UserAccount>>(() => {
-    const saved = localStorage.getItem(LOCAL_USERS_DB_KEY);
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [isGuest, setIsGuest] = useState<boolean>(() => {
+    // Default to guest if Supabase is unconfigured or user opted into guest mode
+    if (!isSupabaseConfigured) return true;
+    return localStorage.getItem(LOCAL_GUEST_FLAG_KEY) === 'true';
+  });
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
+
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false);
+
+  // Helper: map Supabase ProfileRow to UserProfile
+  const mapProfileRowToUser = useCallback((row: ProfileRow): UserProfile => {
+    return {
+      id: row.id,
+      name: row.name || 'User',
+      email: row.email || '',
+      major: row.major || 'Software Engineering',
+      academicLevel: row.academic_level || 'Undergraduate Student',
+      skills: row.skills || [],
+      targetCategories: row.target_categories || [],
+      preferredLocation: row.preferred_location || 'Remote',
+      bio: row.bio || '',
+      emailNotifications: row.email_notifications ?? true,
+      isOnboarded: row.is_onboarded ?? false,
+      createdAt: row.created_at
+    };
+  }, []);
+
+  // Fetch or initialize profile from Supabase
+  const syncProfileFromSupabase = useCallback(async (user: SupabaseUser): Promise<UserProfile> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile from Supabase:', error);
+      }
+
+      if (data) {
+        return mapProfileRowToUser(data as ProfileRow);
+      }
+
+      // If no profile row exists, create one
+      const newProfile: Partial<ProfileRow> = {
+        id: user.id,
+        email: user.email || '',
+        name: (user.user_metadata?.name as string) || (user.user_metadata?.full_name as string) || 'User',
+        major: 'Software Engineering',
+        academic_level: 'Undergraduate Student',
+        skills: ['React', 'Python', 'Generative AI', 'JavaScript'],
+        target_categories: ['Hackathon', 'Scholarship', 'Internship'],
+        preferred_location: 'Remote',
+        bio: 'Tech enthusiast looking for high-impact opportunities.',
+        email_notifications: true,
+        is_onboarded: false
+      };
+
+      const { data: inserted, error: insertError } = await supabase
+        .from('profiles')
+        .upsert(newProfile)
+        .select('*')
+        .single();
+
+      if (insertError) {
+        console.error('Error upserting profile in Supabase:', insertError);
+      }
+
+      if (inserted) {
+        return mapProfileRowToUser(inserted as ProfileRow);
+      }
+    } catch (e) {
+      console.error('Failed to sync profile from Supabase:', e);
+    }
+
+    // Fallback minimal profile
+    return {
+      id: user.id,
+      name: (user.user_metadata?.name as string) || 'User',
+      email: user.email || '',
+      major: 'Software Engineering',
+      academicLevel: 'Undergraduate Student',
+      skills: ['React', 'Python', 'Generative AI'],
+      targetCategories: ['Hackathon', 'Scholarship'],
+      preferredLocation: 'Remote',
+      bio: 'User Profile',
+      emailNotifications: true,
+      isOnboarded: false
+    };
+  }, [mapProfileRowToUser]);
+
+  // Handle local guest session
+  const loadGuestProfile = useCallback((): UserProfile => {
+    const saved = localStorage.getItem(LOCAL_GUEST_PROFILE_KEY);
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
-    return { [SEEDED_DEFAULT_USER.email.toLowerCase()]: SEEDED_DEFAULT_USER };
-  });
+    return INITIAL_USER_PROFILE;
+  }, []);
 
-  // Current Active User Session
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    const savedSession = localStorage.getItem(LOCAL_SESSION_KEY);
-    if (savedSession) {
-      try { return JSON.parse(savedSession); } catch (e) { console.error(e); }
-    }
-    return SEEDED_DEFAULT_USER; // Default logged-in user on first visit
-  });
-
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-
-  // Save users DB changes
+  // Listen to Supabase Auth state changes & restore session on mount
   useEffect(() => {
-    localStorage.setItem(LOCAL_USERS_DB_KEY, JSON.stringify(usersDb));
-  }, [usersDb]);
+    let isMounted = true;
 
-  // Save active session changes
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem(LOCAL_SESSION_KEY);
+    if (!isSupabaseConfigured) {
+      setIsAuthLoading(false);
+      setCurrentUser(loadGuestProfile());
+      setIsGuest(true);
+      return;
     }
-  }, [currentUser]);
 
-  // Helper to strip passwordHash
-  const extractUserProfile = (account: UserAccount): UserProfile => {
-    const profile = { ...account };
-    delete (profile as Partial<UserAccount>).passwordHash;
-    return profile;
-  };
+    const initializeAuth = async () => {
+      setIsAuthLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user && isMounted) {
+          setSupabaseUser(session.user);
+          setIsGuest(false);
+          localStorage.removeItem(LOCAL_GUEST_FLAG_KEY);
+          const profile = await syncProfileFromSupabase(session.user);
+          if (isMounted) setCurrentUser(profile);
+        } else if (isMounted) {
+          setSupabaseUser(null);
+          setCurrentUser(loadGuestProfile());
+          setIsGuest(true);
+        }
+      } catch (err) {
+        console.error('Supabase session initialization error:', err);
+        if (isMounted) {
+          setCurrentUser(loadGuestProfile());
+          setIsGuest(true);
+        }
+      } finally {
+        if (isMounted) setIsAuthLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isMounted) return;
+      if (session?.user) {
+        setSupabaseUser(session.user);
+        setIsGuest(false);
+        localStorage.removeItem(LOCAL_GUEST_FLAG_KEY);
+        const profile = await syncProfileFromSupabase(session.user);
+        if (isMounted) setCurrentUser(profile);
+      } else {
+        setSupabaseUser(null);
+        setCurrentUser(loadGuestProfile());
+        setIsGuest(true);
+      }
+      setIsAuthLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [syncProfileFromSupabase, loadGuestProfile]);
 
   // Login handler
-  const login = (email: string, password: string) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const userAccount = usersDb[normalizedEmail];
-
-    if (!userAccount) {
-      return { success: false, error: 'No account found with this email. Please sign up.' };
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    if (!isSupabaseConfigured) {
+      return {
+        success: false,
+        error: 'Supabase backend is not configured. Local guest preview mode is currently active.'
+      };
     }
 
-    if (userAccount.passwordHash !== password) {
-      return { success: false, error: 'Invalid password. Please try again.' };
-    }
+    setIsAuthLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password
+      });
 
-    setCurrentUser(extractUserProfile(userAccount));
-    setIsAuthModalOpen(false);
-    return { success: true };
+      if (error) {
+        setIsAuthLoading(false);
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        setSupabaseUser(data.user);
+        setIsGuest(false);
+        localStorage.removeItem(LOCAL_GUEST_FLAG_KEY);
+        const profile = await syncProfileFromSupabase(data.user);
+        setCurrentUser(profile);
+        setIsAuthModalOpen(false);
+        setIsAuthLoading(false);
+        return { success: true };
+      }
+
+      setIsAuthLoading(false);
+      return { success: false, error: 'Login failed to retrieve user credentials.' };
+    } catch (err: unknown) {
+      setIsAuthLoading(false);
+      const msg = err instanceof Error ? err.message : 'Authentication request failed.';
+      return { success: false, error: msg };
+    }
   };
 
   // Signup handler
-  const signup = (accountData: Omit<UserAccount, 'id' | 'createdAt'>) => {
-    const normalizedEmail = accountData.email.trim().toLowerCase();
-    if (usersDb[normalizedEmail]) {
-      return { success: false, error: 'An account with this email already exists. Please log in.' };
+  const signup = async (input: SignupInput): Promise<{ success: boolean; error?: string; requiresConfirmation?: boolean; message?: string }> => {
+    if (!isSupabaseConfigured) {
+      return {
+        success: false,
+        error: 'Supabase backend is not configured. Local guest preview mode is currently active.'
+      };
     }
 
-    const newUserId = `usr_${Date.now()}`;
-    const newAccount: UserAccount = {
-      ...accountData,
-      id: newUserId,
-      email: normalizedEmail,
-      isOnboarded: false,
-      createdAt: new Date().toISOString()
-    };
+    setIsAuthLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: input.email.trim(),
+        password: input.password,
+        options: {
+          data: {
+            name: input.name,
+            major: input.major,
+            academic_level: input.academicLevel
+          }
+        }
+      });
 
-    setUsersDb(prev => ({
-      ...prev,
-      [normalizedEmail]: newAccount
-    }));
+      if (error) {
+        setIsAuthLoading(false);
+        return { success: false, error: error.message };
+      }
 
-    setCurrentUser(extractUserProfile(newAccount));
-    setIsAuthModalOpen(false);
-    setIsWizardOpen(true); // Launch onboarding wizard for new user
-    return { success: true };
+      if (data.user) {
+        // Upsert custom profile details into profiles table
+        const profilePayload: Partial<ProfileRow> = {
+          id: data.user.id,
+          name: input.name,
+          email: input.email.trim(),
+          major: input.major,
+          academic_level: input.academicLevel,
+          skills: input.skills || ['React', 'Python', 'Generative AI'],
+          target_categories: input.targetCategories || ['Hackathon', 'Scholarship'],
+          preferred_location: input.preferredLocation || 'Remote',
+          bio: input.bio || `${input.academicLevel} specializing in ${input.major}.`,
+          email_notifications: true,
+          is_onboarded: false
+        };
+
+        await supabase.from('profiles').upsert(profilePayload);
+
+        // Check if user session was immediately returned or email confirmation is required
+        if (data.session) {
+          setSupabaseUser(data.user);
+          setIsGuest(false);
+          localStorage.removeItem(LOCAL_GUEST_FLAG_KEY);
+          const profile = await syncProfileFromSupabase(data.user);
+          setCurrentUser(profile);
+          setIsAuthModalOpen(false);
+          setIsWizardOpen(true);
+          setIsAuthLoading(false);
+          return { success: true };
+        } else {
+          // Email confirmation is required
+          setIsAuthLoading(false);
+          return {
+            success: true,
+            requiresConfirmation: true,
+            message: 'Account created! Please check your email inbox to confirm your email before logging in.'
+          };
+        }
+      }
+
+      setIsAuthLoading(false);
+      return { success: false, error: 'Registration failed.' };
+    } catch (err: unknown) {
+      setIsAuthLoading(false);
+      const msg = err instanceof Error ? err.message : 'Registration request failed.';
+      return { success: false, error: msg };
+    }
   };
 
   // Logout handler
-  const logout = () => {
-    setCurrentUser(null);
+  const logout = async (): Promise<void> => {
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.error('Logout error:', e);
+      }
+    }
+    setSupabaseUser(null);
+    setIsGuest(true);
+    localStorage.setItem(LOCAL_GUEST_FLAG_KEY, 'true');
+    setCurrentUser(loadGuestProfile());
     setIsAuthModalOpen(true);
     setAuthMode('login');
   };
 
-  // Update current user account
-  const updateUserAccount = (updatedFields: Partial<UserProfile>) => {
+  // Explicit Guest Mode Trigger
+  const continueAsGuest = () => {
+    setIsGuest(true);
+    localStorage.setItem(LOCAL_GUEST_FLAG_KEY, 'true');
+    setCurrentUser(loadGuestProfile());
+    setIsAuthModalOpen(false);
+  };
+
+  // Update user profile
+  const updateUserAccount = async (updatedFields: Partial<UserProfile>): Promise<void> => {
     if (!currentUser) return;
+
     const updatedProfile: UserProfile = { ...currentUser, ...updatedFields };
     setCurrentUser(updatedProfile);
 
-    const normalizedEmail = currentUser.email.toLowerCase();
-    if (usersDb[normalizedEmail]) {
-      setUsersDb(prev => ({
-        ...prev,
-        [normalizedEmail]: {
-          ...prev[normalizedEmail],
-          ...updatedFields
-        }
-      }));
+    if (isGuest || !supabaseUser || !isSupabaseConfigured) {
+      localStorage.setItem(LOCAL_GUEST_PROFILE_KEY, JSON.stringify(updatedProfile));
+      return;
+    }
+
+    // Persist to Supabase
+    try {
+      const dbPayload: Partial<ProfileRow> = {
+        id: supabaseUser.id,
+        name: updatedProfile.name,
+        email: updatedProfile.email,
+        major: updatedProfile.major,
+        academic_level: updatedProfile.academicLevel,
+        skills: updatedProfile.skills,
+        target_categories: updatedProfile.targetCategories,
+        preferred_location: updatedProfile.preferredLocation,
+        bio: updatedProfile.bio,
+        email_notifications: updatedProfile.emailNotifications,
+        is_onboarded: updatedProfile.isOnboarded ?? false,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(dbPayload);
+
+      if (error) {
+        console.error('Error saving updated profile to Supabase:', error);
+      }
+    } catch (err) {
+      console.error('Failed to save profile to Supabase:', err);
     }
   };
 
-  // Complete Onboarding Wizard
-  const completeOnboarding = (skills: string[], targetCategories: OpportunityCategory[], preferredLocation: LocationPreference) => {
-    if (!currentUser) return;
-    updateUserAccount({
+  // Onboarding completion
+  const completeOnboarding = async (
+    skills: string[],
+    targetCategories: OpportunityCategory[],
+    preferredLocation: LocationPreference
+  ): Promise<void> => {
+    await updateUserAccount({
       skills,
       targetCategories,
       preferredLocation,
@@ -161,10 +412,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         currentUser,
-        isAuthenticated: !!currentUser,
+        supabaseUser,
+        isAuthenticated: Boolean(supabaseUser && !isGuest),
+        isGuest,
+        isSupabaseConfigured,
+        isAuthLoading,
         login,
         signup,
         logout,
+        continueAsGuest,
         updateUserAccount,
         isAuthModalOpen,
         setIsAuthModalOpen,

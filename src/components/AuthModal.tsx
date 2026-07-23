@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { CareerLevel } from '../types';
-import { X, Lock, Mail, User, Sparkles, LogIn, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { X, Lock, Mail, User, Sparkles, LogIn, UserPlus, AlertCircle, CheckCircle2, Loader2, ArrowRight, Shield } from 'lucide-react';
 
 export const AuthModal: React.FC = () => {
   const { 
@@ -10,57 +10,67 @@ export const AuthModal: React.FC = () => {
     authMode, 
     setAuthMode, 
     login, 
-    signup 
+    signup,
+    continueAsGuest,
+    isSupabaseConfigured
   } = useAuth();
 
-  // Login form state
+  // Form inputs
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Signup form state
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupMajor, setSignupMajor] = useState('Software Engineering');
   const [signupLevel, setSignupLevel] = useState<CareerLevel>('Experienced Professional');
 
-  // Error & Status state
+  // Async state & notices
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   if (!isAuthModalOpen) return null;
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
-    const res = login(loginEmail, loginPassword);
+    setSuccessMsg('');
+    setIsSubmitting(true);
+
+    const res = await login(loginEmail, loginPassword);
+    setIsSubmitting(false);
+
     if (!res.success) {
-      setErrorMsg(res.error || 'Login failed');
+      setErrorMsg(res.error || 'Login failed.');
     }
   };
 
-  const handleSignupSubmit = (e: React.FormEvent) => {
+  const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
-    const res = signup({
+    setSuccessMsg('');
+    setIsSubmitting(true);
+
+    const res = await signup({
       name: signupName,
       email: signupEmail,
-      passwordHash: signupPassword,
+      password: signupPassword,
       major: signupMajor,
       academicLevel: signupLevel,
       skills: ['React', 'Python', 'Generative AI', 'JavaScript'],
       targetCategories: ['Hackathon', 'Scholarship', 'Internship'],
       preferredLocation: 'Remote',
-      bio: `${signupLevel} specializing in ${signupMajor}.`,
-      emailNotifications: true
+      bio: `${signupLevel} specializing in ${signupMajor}.`
     });
 
-    if (!res.success) {
-      setErrorMsg(res.error || 'Signup failed');
-    }
-  };
+    setIsSubmitting(false);
 
-  const handleDemoLogin = () => {
-    login('arsalan.student@hec.edu.pk', 'demo123');
+    if (!res.success) {
+      setErrorMsg(res.error || 'Signup failed.');
+    } else if (res.requiresConfirmation) {
+      setSuccessMsg(res.message || 'Account created! Please check your email inbox to confirm your account.');
+    }
   };
 
   return (
@@ -71,7 +81,7 @@ export const AuthModal: React.FC = () => {
         <button
           id="btn-close-auth-modal"
           onClick={() => setIsAuthModalOpen(false)}
-          className="absolute right-5 top-5 rounded-xl border border-slate-800 bg-slate-900/60 p-2 text-slate-400 hover:text-white hover:border-slate-700"
+          className="absolute right-5 top-5 rounded-xl border border-slate-800 bg-slate-900/60 p-2 text-slate-400 hover:text-white hover:border-slate-700 transition-colors"
         >
           <X className="h-5 w-5" />
         </button>
@@ -82,21 +92,34 @@ export const AuthModal: React.FC = () => {
             <Sparkles className="h-6 w-6" />
           </div>
           <h2 className="font-['Outfit'] text-2xl font-bold text-white mt-3">
-            {authMode === 'login' ? 'Welcome Back' : 'Create Professional Account'}
+            {authMode === 'login' ? 'Welcome Back' : 'Create Account'}
           </h2>
           <p className="text-xs text-slate-400 mt-1">
             {authMode === 'login' 
               ? 'Access your personalized opportunity radar & copilot' 
-              : 'Join OpportunityPulse AI to match with global opportunities'}
+              : 'Join OpportunityPulse AI for persistent tracking'}
           </p>
+
+          {/* Backend configuration status badge */}
+          <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px]">
+            {isSupabaseConfigured ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 font-medium text-emerald-400">
+                <Shield className="h-3 w-3" /> Supabase Postgres Auth Active
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 font-medium text-amber-400">
+                <Shield className="h-3 w-3" /> Local Guest Preview Mode Active
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Mode Switcher Tabs */}
-        <div className="mt-6 flex rounded-xl bg-slate-900/80 p-1 border border-slate-800">
+        <div className="mt-5 flex rounded-xl bg-slate-900/80 p-1 border border-slate-800">
           <button
             id="tab-auth-login"
             type="button"
-            onClick={() => { setAuthMode('login'); setErrorMsg(''); }}
+            onClick={() => { setAuthMode('login'); setErrorMsg(''); setSuccessMsg(''); }}
             className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
               authMode === 'login' 
                 ? 'bg-cyan-500 text-black shadow-md' 
@@ -108,7 +131,7 @@ export const AuthModal: React.FC = () => {
           <button
             id="tab-auth-signup"
             type="button"
-            onClick={() => { setAuthMode('signup'); setErrorMsg(''); }}
+            onClick={() => { setAuthMode('signup'); setErrorMsg(''); setSuccessMsg(''); }}
             className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
               authMode === 'signup' 
                 ? 'bg-cyan-500 text-black shadow-md' 
@@ -121,18 +144,26 @@ export const AuthModal: React.FC = () => {
 
         {/* Error Banner */}
         {errorMsg && (
-          <div className="mt-4 flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-300">
-            <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />
+          <div className="mt-4 flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-300">
+            <AlertCircle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
             <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {/* Success Banner */}
+        {successMsg && (
+          <div className="mt-4 flex items-start gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-300">
+            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+            <span>{successMsg}</span>
           </div>
         )}
 
         {/* Login Form */}
         {authMode === 'login' ? (
-          <form onSubmit={handleLoginSubmit} className="mt-5 space-y-4">
+          <form onSubmit={handleLoginSubmit} className="mt-4 space-y-3.5">
             <div>
               <label className="text-xs font-semibold text-slate-300">Email Address</label>
-              <div className="relative mt-1.5">
+              <div className="relative mt-1">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   id="input-login-email"
@@ -148,7 +179,7 @@ export const AuthModal: React.FC = () => {
 
             <div>
               <label className="text-xs font-semibold text-slate-300">Password</label>
-              <div className="relative mt-1.5">
+              <div className="relative mt-1">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   id="input-login-password"
@@ -165,26 +196,21 @@ export const AuthModal: React.FC = () => {
             <button
               id="btn-submit-login"
               type="submit"
-              className="mt-2 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 hover:opacity-90 transition-all"
+              disabled={isSubmitting}
+              className="mt-2 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 hover:opacity-90 transition-all disabled:opacity-50"
             >
-              <LogIn className="h-4 w-4" /> Log In
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+              ) : (
+                <>
+                  <LogIn className="h-4 w-4" /> Log In
+                </>
+              )}
             </button>
-
-            {/* Quick Demo Login Button for Graders */}
-            <div className="border-t border-slate-800 pt-4 text-center">
-              <button
-                id="btn-demo-grader-login"
-                type="button"
-                onClick={handleDemoLogin}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-slate-800/80 border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white"
-              >
-                <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400" /> 1-Click Grader Demo Login (Arsalan)
-              </button>
-            </div>
           </form>
         ) : (
           /* Signup Form */
-          <form onSubmit={handleSignupSubmit} className="mt-5 space-y-3.5">
+          <form onSubmit={handleSignupSubmit} className="mt-4 space-y-3">
             <div>
               <label className="text-xs font-semibold text-slate-300">Full Name</label>
               <div className="relative mt-1">
@@ -256,6 +282,7 @@ export const AuthModal: React.FC = () => {
                   value={signupPassword}
                   onChange={e => setSignupPassword(e.target.value)}
                   className="glass-input mt-1 w-full rounded-xl px-3 py-2 text-xs"
+                  minLength={6}
                   required
                 />
               </div>
@@ -264,12 +291,32 @@ export const AuthModal: React.FC = () => {
             <button
               id="btn-submit-signup"
               type="submit"
-              className="mt-3 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 hover:opacity-90 transition-all"
+              disabled={isSubmitting}
+              className="mt-3 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 hover:opacity-90 transition-all disabled:opacity-50"
             >
-              <UserPlus className="h-4 w-4" /> Create Account & Start Setup
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4" /> Create Account & Start Setup
+                </>
+              )}
             </button>
           </form>
         )}
+
+        {/* Guest Preview Action */}
+        <div className="border-t border-slate-800 mt-5 pt-4 text-center">
+          <button
+            id="btn-continue-guest-preview"
+            type="button"
+            onClick={continueAsGuest}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-slate-900/80 border border-slate-800 px-4 py-2.5 text-xs font-medium text-slate-400 hover:text-white hover:border-slate-700 transition-colors"
+          >
+            <span>Continue as Guest (Local Heuristic Preview)</span>
+            <ArrowRight className="h-3.5 w-3.5 text-cyan-400" />
+          </button>
+        </div>
 
       </div>
     </div>

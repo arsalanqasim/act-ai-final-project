@@ -43,7 +43,7 @@ export const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({ isOpen, on
     setExtractedSuccess(false);
 
     try {
-      const extracted = await parseResumeWithGemini(resumeText);
+      const { profile: extracted } = await parseResumeWithGemini(resumeText);
       setUserProfile({
         ...userProfile,
         name: extracted.name || userProfile.name,

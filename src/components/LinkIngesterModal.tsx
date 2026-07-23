@@ -16,8 +16,8 @@ export const LinkIngesterModal: React.FC = () => {
 
     setIsParsing(true);
     try {
-      const extractedOpp = await parseUnstructuredTextWithGemini(rawInput);
-      addOpportunity(extractedOpp);
+      const { opportunity } = await parseUnstructuredTextWithGemini(rawInput);
+      await addOpportunity(opportunity);
       setRawInput('');
       setIsIngesterOpen(false);
     } catch (err) {
@@ -52,7 +52,7 @@ Apply here: https://devpost.com/hackathons/agentic-ai-2026`;
           </div>
           <div>
             <h2 className="font-['Outfit'] text-xl font-bold text-white">Unstructured Opportunity Ingestion Agent</h2>
-            <p className="text-xs text-slate-400">Paste any raw LinkedIn post, WhatsApp alert, or text to extract structured details locally.</p>
+            <p className="text-xs text-slate-400">Paste any raw LinkedIn post, WhatsApp alert, or text to extract structured details.</p>
           </div>
         </div>
 
@@ -84,7 +84,7 @@ Apply here: https://devpost.com/hackathons/agentic-ai-2026`;
           <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-xs text-slate-400 flex items-start gap-2">
             <FileText className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
             <p>
-              The <strong>Ingestion Agent</strong> uses local NLP parsing rules to extract title, organization, category, deadline, tech stack, prize, and apply link into your opportunity feed.
+              The <strong>Ingestion Agent</strong> extracts title, organization, category, deadline, tech stack, prize, and apply link into your opportunity feed using server AI or local NLP fallback.
             </p>
           </div>
 

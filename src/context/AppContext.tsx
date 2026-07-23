@@ -1,16 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { UserProfile, Opportunity, MatchResult, FilterState } from '../types';
+import { UserProfile, Opportunity, MatchResult, FilterState, EngineMode, SavedOpportunityRow, CustomOpportunityRow } from '../types';
 import { INITIAL_USER_PROFILE, INITIAL_OPPORTUNITIES } from '../services/mockData';
-import { calculateLocalMatchScore } from '../services/fallbackService';
+import { evaluateMatchWithGemini } from '../services/geminiService';
 import { useAuth } from './AuthContext';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface AppContextType {
   userProfile: UserProfile;
   setUserProfile: (profile: UserProfile) => void;
   opportunities: Opportunity[];
-  addOpportunity: (opp: Opportunity) => void;
+  addOpportunity: (opp: Opportunity) => Promise<void>;
   savedIds: string[];
-  toggleSaveOpportunity: (id: string) => void;
+  toggleSaveOpportunity: (id: string) => Promise<void>;
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   matchResults: Record<string, MatchResult>;
@@ -24,6 +25,8 @@ interface AppContextType {
   copilotOpp: Opportunity | null;
   setCopilotOpp: (opp: Opportunity | null) => void;
   isLoadingMatches: boolean;
+  engineMode: EngineMode;
+  setEngineMode: (mode: EngineMode) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -33,42 +36,104 @@ const LOCAL_OPPS_KEY = 'opp_pulse_custom_opps_v2';
 const OLD_LOCAL_API_KEY = 'opp_pulse_gemini_api_key_v2';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentUser, updateUserAccount } = useAuth();
+  const { currentUser, supabaseUser, isAuthenticated, isGuest, updateUserAccount } = useAuth();
 
-  // One-time migration to remove legacy client-side API key from localStorage
+  // One-time cleanup of legacy local API key
   useEffect(() => {
     if (localStorage.getItem(OLD_LOCAL_API_KEY)) {
       localStorage.removeItem(OLD_LOCAL_API_KEY);
     }
   }, []);
 
-  // Profile derived from AuthContext or fallback
+  // Derived user profile
   const userProfile = currentUser || INITIAL_USER_PROFILE;
 
   const setUserProfile = (updatedProfile: UserProfile) => {
     updateUserAccount(updatedProfile);
   };
 
-  // Load custom opportunities
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(() => {
-    const saved = localStorage.getItem(LOCAL_OPPS_KEY);
-    if (saved) {
-      try {
-        const custom: Opportunity[] = JSON.parse(saved);
-        return [...custom, ...INITIAL_OPPORTUNITIES];
-      } catch (e) { console.error(e); }
-    }
-    return INITIAL_OPPORTUNITIES;
-  });
+  // State: Custom opportunities & Bookmarks
+  const [customOpportunities, setCustomOpportunities] = useState<Opportunity[]>([]);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [engineMode, setEngineMode] = useState<EngineMode>('Local Heuristic Engine');
 
-  // Saved bookmark IDs
-  const [savedIds, setSavedIds] = useState<string[]>(() => {
-    const saved = localStorage.getItem(LOCAL_SAVED_KEY);
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
-    }
-    return ['opp_001', 'opp_005'];
-  });
+  // Combined opportunities (Static seed + Custom ingested)
+  const opportunities = React.useMemo(() => {
+    return [...customOpportunities, ...INITIAL_OPPORTUNITIES];
+  }, [customOpportunities]);
+
+  // Load user app data (Bookmarks & Custom Opportunities) from Supabase or localStorage
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadData = async () => {
+      if (isAuthenticated && supabaseUser && isSupabaseConfigured) {
+        // Load Bookmarks from Supabase
+        try {
+          const { data: savedData, error: savedErr } = await supabase
+            .from('saved_opportunities')
+            .select('opportunity_id')
+            .eq('user_id', supabaseUser.id);
+
+          if (!savedErr && savedData && isMounted) {
+            const ids = (savedData as SavedOpportunityRow[]).map(s => s.opportunity_id);
+            setSavedIds(ids);
+          }
+        } catch (e) {
+          console.error('Error fetching saved opportunities from Supabase:', e);
+        }
+
+        // Load Custom Opportunities from Supabase
+        try {
+          const { data: oppData, error: oppErr } = await supabase
+            .from('custom_opportunities')
+            .select('*')
+            .eq('user_id', supabaseUser.id)
+            .order('created_at', { ascending: false });
+
+          if (!oppErr && oppData && isMounted) {
+            const opps: Opportunity[] = (oppData as CustomOpportunityRow[]).map(row => ({
+              id: row.id,
+              title: row.title,
+              organization: row.organization,
+              category: row.category,
+              deadline: row.deadline,
+              location: row.location,
+              stipendOrPrize: row.stipend_or_prize,
+              techStackOrEligibility: row.tech_stack_or_eligibility,
+              description: row.description,
+              applyUrl: row.apply_url,
+              featured: row.featured,
+              postedDate: row.posted_date,
+              sourceUrl: row.source_url || undefined
+            }));
+            setCustomOpportunities(opps);
+          }
+        } catch (e) {
+          console.error('Error fetching custom opportunities from Supabase:', e);
+        }
+      } else {
+        // Guest mode fallback: load from localStorage
+        const savedLoc = localStorage.getItem(LOCAL_SAVED_KEY);
+        if (savedLoc) {
+          try { setSavedIds(JSON.parse(savedLoc)); } catch (e) { console.error(e); }
+        } else {
+          setSavedIds(['opp_001', 'opp_005']);
+        }
+
+        const oppsLoc = localStorage.getItem(LOCAL_OPPS_KEY);
+        if (oppsLoc) {
+          try { setCustomOpportunities(JSON.parse(oppsLoc)); } catch (e) { console.error(e); }
+        }
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, supabaseUser, isGuest]);
 
   // Filters
   const [filters, setFilters] = useState<FilterState>({
@@ -89,36 +154,111 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [matchResults, setMatchResults] = useState<Record<string, MatchResult>>({});
   const [isLoadingMatches, setIsLoadingMatches] = useState(false);
 
-  // Add new opportunity from Ingestion Agent
-  const addOpportunity = (opp: Opportunity) => {
-    setOpportunities(prev => [opp, ...prev]);
-    const existingCustom = JSON.parse(localStorage.getItem(LOCAL_OPPS_KEY) || '[]');
-    localStorage.setItem(LOCAL_OPPS_KEY, JSON.stringify([opp, ...existingCustom]));
+  // Add new custom opportunity
+  const addOpportunity = async (opp: Opportunity) => {
+    setCustomOpportunities(prev => [opp, ...prev]);
+
+    if (isAuthenticated && supabaseUser && isSupabaseConfigured) {
+      try {
+        const payload: CustomOpportunityRow = {
+          id: opp.id,
+          user_id: supabaseUser.id,
+          title: opp.title,
+          organization: opp.organization,
+          category: opp.category,
+          deadline: opp.deadline,
+          location: opp.location,
+          stipend_or_prize: opp.stipendOrPrize,
+          tech_stack_or_eligibility: opp.techStackOrEligibility,
+          description: opp.description,
+          apply_url: opp.applyUrl,
+          featured: opp.featured ?? false,
+          posted_date: opp.postedDate,
+          source_url: opp.sourceUrl || null,
+          created_at: new Date().toISOString()
+        };
+
+        const { error } = await supabase
+          .from('custom_opportunities')
+          .insert(payload);
+
+        if (error) {
+          console.error('Error inserting custom opportunity to Supabase:', error);
+        }
+      } catch (e) {
+        console.error('Failed to insert custom opportunity to Supabase:', e);
+      }
+    } else {
+      const existing = JSON.parse(localStorage.getItem(LOCAL_OPPS_KEY) || '[]');
+      localStorage.setItem(LOCAL_OPPS_KEY, JSON.stringify([opp, ...existing]));
+    }
   };
 
-  // Bookmark toggle
-  const toggleSaveOpportunity = (id: string) => {
-    setSavedIds(prev => {
-      const updated = prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id];
-      localStorage.setItem(LOCAL_SAVED_KEY, JSON.stringify(updated));
-      return updated;
-    });
+  // Toggle Save Opportunity (Optimistic UI update with rollback)
+  const toggleSaveOpportunity = async (id: string) => {
+    const isCurrentlySaved = savedIds.includes(id);
+    const updatedIds = isCurrentlySaved
+      ? savedIds.filter(item => item !== id)
+      : [...savedIds, id];
+
+    // Optimistic state update
+    setSavedIds(updatedIds);
+
+    if (isAuthenticated && supabaseUser && isSupabaseConfigured) {
+      try {
+        if (isCurrentlySaved) {
+          const { error } = await supabase
+            .from('saved_opportunities')
+            .delete()
+            .eq('user_id', supabaseUser.id)
+            .eq('opportunity_id', id);
+
+          if (error) {
+            console.error('Error deleting saved opportunity:', error);
+            setSavedIds(savedIds); // Revert optimistic state
+          }
+        } else {
+          const { error } = await supabase
+            .from('saved_opportunities')
+            .insert({
+              user_id: supabaseUser.id,
+              opportunity_id: id
+            });
+
+          if (error) {
+            console.error('Error saving opportunity:', error);
+            setSavedIds(savedIds); // Revert optimistic state
+          }
+        }
+      } catch (e) {
+        console.error('Failed to update bookmark on Supabase:', e);
+        setSavedIds(savedIds); // Revert
+      }
+    } else {
+      localStorage.setItem(LOCAL_SAVED_KEY, JSON.stringify(updatedIds));
+    }
   };
 
   // Re-evaluate matches for all opportunities
   const reevaluateMatches = useCallback(async () => {
     setIsLoadingMatches(true);
     const newResults: Record<string, MatchResult> = {};
+    let activeEngineMode: EngineMode = 'Local Heuristic Engine';
 
     for (const opp of opportunities) {
-      newResults[opp.id] = calculateLocalMatchScore(userProfile, opp);
+      const { result, engineMode: mode } = await evaluateMatchWithGemini(userProfile, opp);
+      newResults[opp.id] = result;
+      if (mode === 'Secure Server AI Gateway') {
+        activeEngineMode = 'Secure Server AI Gateway';
+      }
     }
 
     setMatchResults(newResults);
+    setEngineMode(activeEngineMode);
     setIsLoadingMatches(false);
   }, [userProfile, opportunities]);
 
-  // Re-calculate matches when profile or opportunities change
+  // Initial and reactive re-evaluation
   useEffect(() => {
     reevaluateMatches();
   }, [reevaluateMatches]);
@@ -144,7 +284,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsSettingsOpen,
         copilotOpp,
         setCopilotOpp,
-        isLoadingMatches
+        isLoadingMatches,
+        engineMode,
+        setEngineMode
       }}
     >
       {children}
