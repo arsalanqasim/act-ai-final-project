@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { AcademicLevel } from '../types';
+import { CareerLevel } from '../types';
 import { X, Lock, Mail, User, Sparkles, LogIn, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export const AuthModal: React.FC = () => {
@@ -21,8 +21,8 @@ export const AuthModal: React.FC = () => {
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [signupMajor, setSignupMajor] = useState('Computer Science');
-  const [signupLevel, setSignupLevel] = useState<AcademicLevel>('Undergraduate');
+  const [signupMajor, setSignupMajor] = useState('Software Engineering');
+  const [signupLevel, setSignupLevel] = useState<CareerLevel>('Experienced Professional');
 
   // Error & Status state
   const [errorMsg, setErrorMsg] = useState('');
@@ -50,7 +50,7 @@ export const AuthModal: React.FC = () => {
       skills: ['React', 'Python', 'Generative AI', 'JavaScript'],
       targetCategories: ['Hackathon', 'Scholarship', 'Internship'],
       preferredLocation: 'Remote',
-      bio: `${signupLevel} studying ${signupMajor}.`,
+      bio: `${signupLevel} specializing in ${signupMajor}.`,
       emailNotifications: true
     });
 
@@ -82,7 +82,7 @@ export const AuthModal: React.FC = () => {
             <Sparkles className="h-6 w-6" />
           </div>
           <h2 className="font-['Outfit'] text-2xl font-bold text-white mt-3">
-            {authMode === 'login' ? 'Welcome Back' : 'Create Candidate Account'}
+            {authMode === 'login' ? 'Welcome Back' : 'Create Professional Account'}
           </h2>
           <p className="text-xs text-slate-400 mt-1">
             {authMode === 'login' 
@@ -137,7 +137,7 @@ export const AuthModal: React.FC = () => {
                 <input
                   id="input-login-email"
                   type="email"
-                  placeholder="student@hec.edu.pk"
+                  placeholder="name@example.com"
                   value={loginEmail}
                   onChange={e => setLoginEmail(e.target.value)}
                   className="glass-input w-full rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm"
@@ -208,7 +208,7 @@ export const AuthModal: React.FC = () => {
                 <input
                   id="input-signup-email"
                   type="email"
-                  placeholder="name@university.edu.pk"
+                  placeholder="name@example.com"
                   value={signupEmail}
                   onChange={e => setSignupEmail(e.target.value)}
                   className="glass-input w-full rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm"
@@ -218,11 +218,11 @@ export const AuthModal: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Degree / Major</label>
+              <label className="text-xs font-semibold text-slate-300">Title / Specialization / Major</label>
               <input
                 id="input-signup-major"
                 type="text"
-                placeholder="e.g. Software Engineering"
+                placeholder="e.g. Software Engineer, Data Scientist, CS Student"
                 value={signupMajor}
                 onChange={e => setSignupMajor(e.target.value)}
                 className="glass-input mt-1 w-full rounded-xl px-3.5 py-2 text-xs sm:text-sm"
@@ -232,16 +232,18 @@ export const AuthModal: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs font-semibold text-slate-300">Academic Level</label>
+                <label className="text-xs font-semibold text-slate-300">Career Stage</label>
                 <select
                   id="select-signup-level"
                   value={signupLevel}
-                  onChange={e => setSignupLevel(e.target.value as AcademicLevel)}
+                  onChange={e => setSignupLevel(e.target.value as CareerLevel)}
                   className="glass-input mt-1 w-full rounded-xl px-3 py-2 text-xs"
                 >
-                  <option value="Undergraduate">Undergraduate</option>
-                  <option value="Postgraduate">Postgraduate</option>
+                  <option value="Experienced Professional">Experienced Professional</option>
+                  <option value="Freelancer / Self-Taught">Freelancer / Self-Taught</option>
                   <option value="Fresh Graduate">Fresh Graduate</option>
+                  <option value="Undergraduate Student">Undergraduate Student</option>
+                  <option value="Postgraduate (MS/PhD)">Postgraduate (MS/PhD)</option>
                 </select>
               </div>
 

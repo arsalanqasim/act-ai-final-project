@@ -1,13 +1,21 @@
 export type OpportunityCategory = 'Hackathon' | 'Scholarship' | 'Internship' | 'Grant' | 'Tech Event';
-export type AcademicLevel = 'Undergraduate' | 'Postgraduate' | 'Fresh Graduate' | 'High School';
+
+export type CareerLevel = 
+  | 'Undergraduate Student' 
+  | 'Postgraduate (MS/PhD)' 
+  | 'Fresh Graduate' 
+  | 'Experienced Professional' 
+  | 'Freelancer / Self-Taught' 
+  | 'High School / A-Levels';
+
 export type LocationPreference = 'Remote' | 'Pakistan' | 'Global' | 'Hybrid';
 
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
-  major: string;
-  academicLevel: AcademicLevel;
+  major: string; // Major or Current Title (e.g. "Software Engineer", "Data Scientist", "CS Student")
+  academicLevel: CareerLevel;
   skills: string[];
   targetCategories: OpportunityCategory[];
   preferredLocation: LocationPreference;
@@ -57,4 +65,15 @@ export interface FilterState {
 export interface IngestionPayload {
   rawText?: string;
   url?: string;
+}
+
+export interface ExtractedResumeProfile {
+  name: string;
+  email: string;
+  major: string;
+  academicLevel: CareerLevel;
+  skills: string[];
+  targetCategories: OpportunityCategory[];
+  preferredLocation: LocationPreference;
+  bio: string;
 }

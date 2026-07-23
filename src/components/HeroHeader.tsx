@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Sparkles, Target, Award, Globe, ShieldCheck } from 'lucide-react';
+import { Sparkles, Target, Award, ShieldCheck, Briefcase } from 'lucide-react';
 
 export const HeroHeader: React.FC = () => {
   const { userProfile, opportunities, setIsProfileOpen, apiKey } = useApp();
@@ -17,7 +17,7 @@ export const HeroHeader: React.FC = () => {
         {/* Top Badge */}
         <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-300">
           <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-          <span>Tailored for Pakistani Students & Tech Youth</span>
+          <span>Tailored for Students, Professionals, Freelancers & Researchers</span>
         </div>
 
         {/* Hero Title & Subtitle */}
@@ -26,7 +26,7 @@ export const HeroHeader: React.FC = () => {
             Never Miss a High-Signal <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent">Opportunity</span> Again.
           </h1>
           <p className="mt-3 text-base text-slate-300 sm:text-lg">
-            Bypass social media noise. OpportunityPulse AI matches your skills with verified AI Hackathons, Fulbright & Erasmus Scholarships, Remote Tech Internships, and Ignite Grants.
+            Bypass social media noise. OpportunityPulse AI matches your skills with verified AI Hackathons, Fulbright & Erasmus Scholarships, Remote Internships & Jobs, and Tech Grants.
           </p>
         </div>
 
@@ -35,7 +35,7 @@ export const HeroHeader: React.FC = () => {
           
           {/* Active Profile Pill */}
           <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-2 text-xs sm:text-sm">
-            <Target className="h-4 w-4 text-cyan-400" />
+            <Briefcase className="h-4 w-4 text-cyan-400" />
             <div>
               <span className="text-slate-400">Active Profile: </span>
               <strong className="text-white">{userProfile.major}</strong> ({userProfile.academicLevel})

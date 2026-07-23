@@ -1,4 +1,4 @@
-import { Opportunity, UserProfile, MatchResult } from '../types';
+import { Opportunity, UserProfile, MatchResult, ExtractedResumeProfile } from '../types';
 
 /**
  * Calculates a local heuristic match score (0-100) between a user profile and an opportunity.
@@ -61,7 +61,7 @@ export function calculateLocalMatchScore(profile: UserProfile, opp: Opportunity)
   else if (score >= 45) verdict = 'Moderate Match';
 
   if (reasons.length === 0) {
-    reasons.push('General alignment with your academic background.');
+    reasons.push('General alignment with your professional background.');
   }
 
   return {
@@ -96,15 +96,14 @@ I am writing to express my strong enthusiasm for the **${opp.title}** hosted by 
 #### ⚡ Technical Strengths & Skill Alignment
 My core technical skillset directly matches key criteria specified for this ${opp.category.toLowerCase()}:
 * **Core Technical Stack**: ${matchedList}
-* **Project Experience**: Developed agentic web applications and interactive software products utilizing modern APIs and scalable frontend frameworks.
+* **Professional Experience**: Developed robust applications and technical solutions using modern tools and frameworks.
 * **Problem Solving**: Experienced in rapid prototyping, team collaboration, and shipping production-ready applications.
 
 #### 💡 Proposed Contribution / Plan
-For this ${opp.category.toLowerCase()}, I intend to build a high-impact solution solving real-world challenges, utilizing my expertise in **${profile.skills[0] || 'Web Development'}** and **${profile.skills[1] || 'AI Integration'}**.
+For this ${opp.category.toLowerCase()}, I intend to build a high-impact solution solving real-world challenges, utilizing my expertise in **${profile.skills[0] || 'Software Development'}** and **${profile.skills[1] || 'AI Integration'}**.
 
 #### 📞 Contact & Portfolio
 * **Email**: ${profile.email}
-* **GitHub**: github.com/arsalanqasim
 
 *Thank you for reviewing my application!*`;
 }
@@ -131,5 +130,64 @@ export function parseLocalUnstructuredText(rawText: string): Opportunity {
     applyUrl: rawText.match(/https?:\/\/[^\s]+/)?.[0] || 'https://google.com',
     featured: true,
     postedDate: new Date().toISOString().split('T')[0]
+  };
+}
+
+/**
+ * Fallback CV/Resume Text Parser (Local Regex & Heuristics)
+ */
+export function parseLocalResumeText(resumeText: string): ExtractedResumeProfile {
+  const lines = resumeText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  
+  // Extract Name (assume first line or non-header text)
+  const name = lines[0] && lines[0].length < 40 ? lines[0] : 'Candidate User';
+  
+  // Extract Email
+  const emailMatch = resumeText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  const email = emailMatch ? emailMatch[0] : 'user@example.com';
+
+  // Extract Major / Title
+  let major = 'Full-Stack Software Engineer';
+  if (resumeText.toLowerCase().includes('computer science')) major = 'Computer Science';
+  else if (resumeText.toLowerCase().includes('data science')) major = 'Data Science';
+  else if (resumeText.toLowerCase().includes('ai engineer') || resumeText.toLowerCase().includes('machine learning')) major = 'AI / ML Engineer';
+  else if (resumeText.toLowerCase().includes('business')) major = 'Business & Product Management';
+
+  // Extract Skills
+  const knownSkills = [
+    'Python', 'React', 'TypeScript', 'JavaScript', 'Generative AI', 'Machine Learning', 
+    'Node.js', 'SQL', 'C++', 'Java', 'Data Science', 'PyTorch', 'Docker', 'AWS', 'NLP', 
+    'Git', 'Flutter', 'Tailwind CSS', 'HTML', 'CSS', 'PostgreSQL', 'MongoDB'
+  ];
+  
+  const extractedSkills = knownSkills.filter(skill => 
+    new RegExp(`\\b${skill.replace('+', '\\+')}\\b`, 'i').test(resumeText)
+  );
+
+  const finalSkills = extractedSkills.length > 0 
+    ? extractedSkills 
+    : ['Python', 'React', 'JavaScript', 'Git', 'Generative AI'];
+
+  // Career Level detection
+  let academicLevel: ExtractedResumeProfile['academicLevel'] = 'Experienced Professional';
+  if (resumeText.toLowerCase().includes('undergraduate') || resumeText.toLowerCase().includes('bachelor student')) {
+    academicLevel = 'Undergraduate Student';
+  } else if (resumeText.toLowerCase().includes('freelancer') || resumeText.toLowerCase().includes('upwork')) {
+    academicLevel = 'Freelancer / Self-Taught';
+  } else if (resumeText.toLowerCase().includes('master') || resumeText.toLowerCase().includes('phd')) {
+    academicLevel = 'Postgraduate (MS/PhD)';
+  } else if (resumeText.toLowerCase().includes('fresh graduate')) {
+    academicLevel = 'Fresh Graduate';
+  }
+
+  return {
+    name,
+    email,
+    major,
+    academicLevel,
+    skills: finalSkills,
+    targetCategories: ['Hackathon', 'Scholarship', 'Internship', 'Grant'],
+    preferredLocation: 'Remote',
+    bio: `${academicLevel} specializing in ${major} with expertise in ${finalSkills.slice(0, 3).join(', ')}.`
   };
 }

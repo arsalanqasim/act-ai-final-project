@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Opportunity, UserProfile, MatchResult } from '../types';
-import { calculateLocalMatchScore, generateLocalProposalDraft, parseLocalUnstructuredText } from './fallbackService';
+import { Opportunity, UserProfile, MatchResult, ExtractedResumeProfile } from '../types';
+import { calculateLocalMatchScore, generateLocalProposalDraft, parseLocalUnstructuredText, parseLocalResumeText } from './fallbackService';
 
 /**
  * Gets a GoogleGenerativeAI client instance if key is available.
@@ -26,12 +26,11 @@ export async function evaluateMatchWithGemini(
 
   try {
     const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const prompt = `You are a Senior Career & Academic Placement Specialist.
-Evaluate candidate suitability for an opportunity.
+    const prompt = `You are a Senior Career Placement Specialist evaluating candidate suitability for an opportunity.
 
 Candidate Profile:
 - Name: ${profile.name}
-- Major: ${profile.major} (${profile.academicLevel})
+- Major/Title: ${profile.major} (${profile.academicLevel})
 - Skills: ${profile.skills.join(', ')}
 - Target Categories: ${profile.targetCategories.join(', ')}
 - Preferred Location: ${profile.preferredLocation}
@@ -94,7 +93,7 @@ Write a compelling, tailored 1-page application pitch in clean Markdown format.
 
 Applicant Details:
 - Name: ${profile.name}
-- Major: ${profile.major} (${profile.academicLevel})
+- Title/Major: ${profile.major} (${profile.academicLevel})
 - Skills: ${profile.skills.join(', ')}
 - Bio: ${profile.bio}
 
@@ -174,4 +173,63 @@ Extract and return ONLY a valid JSON object matching this schema:
   }
 
   return parseLocalUnstructuredText(rawText);
+}
+
+/**
+ * Parses CV / Resume text using Gemini AI to extract complete User Profile fields.
+ */
+export async function parseResumeWithGemini(
+  resumeText: string,
+  apiKey?: string
+): Promise<ExtractedResumeProfile> {
+  const ai = getGenerativeClientOrNull(apiKey);
+  if (!ai) {
+    return parseLocalResumeText(resumeText);
+  }
+
+  try {
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const prompt = `You are an expert Resume Parser and Career Profile Extractor.
+Extract candidate information from the following Resume / CV text.
+
+Resume Text:
+"${resumeText.slice(0, 4000)}"
+
+Extract and return ONLY a valid JSON object matching this schema:
+{
+  "name": string (Full candidate name),
+  "email": string (Email address or "user@example.com"),
+  "major": string (Degree major or current professional job title e.g. "Full-Stack Engineer", "Computer Science", "Data Analyst"),
+  "academicLevel": "Undergraduate Student" | "Postgraduate (MS/PhD)" | "Fresh Graduate" | "Experienced Professional" | "Freelancer / Self-Taught" | "High School / A-Levels",
+  "skills": string[] (Array of technical and professional skills extracted),
+  "targetCategories": ["Hackathon", "Scholarship", "Internship", "Grant"],
+  "preferredLocation": "Remote" | "Pakistan" | "Global" | "Hybrid",
+  "bio": string (2-sentence concise professional bio)
+}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      return {
+        name: parsed.name || 'Candidate User',
+        email: parsed.email || 'user@example.com',
+        major: parsed.major || 'Software Engineering',
+        academicLevel: parsed.academicLevel || 'Experienced Professional',
+        skills: parsed.skills || ['Python', 'React', 'Git'],
+        targetCategories: parsed.targetCategories || ['Hackathon', 'Scholarship', 'Internship', 'Grant'],
+        preferredLocation: parsed.preferredLocation || 'Remote',
+        bio: parsed.bio || 'Experienced professional with a strong technical background.'
+      };
+    }
+  } catch (error) {
+    console.warn('Gemini resume parsing failed, using local parser:', error);
+  }
+
+  return parseLocalResumeText(resumeText);
+}
+
+function getGenerativeClientOrNull(apiKey?: string): GoogleGenerativeAI | null {
+  return getGeminiClient(apiKey);
 }
