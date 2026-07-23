@@ -242,8 +242,8 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
   isOpen,
   onClose,
 }) => {
-  const { applications, isLoading: appsLoading, openWorkspaceModal } = useApplications();
-  const { tasks, isLoading: tasksLoading, error: tasksError, completeTask, reopenTask, deleteTask, clearError } = useActionTasks();
+  const { applications, isLoading: appsLoading, error: appsError, openWorkspaceModal, retryLoadApplications } = useApplications();
+  const { tasks, isLoading: tasksLoading, error: tasksError, completeTask, reopenTask, deleteTask, clearError, retryLoadTasks } = useActionTasks();
   const { opportunities, savedIds, matchResults } = useApp();
   const { isAuthenticated, isGuest } = useAuth();
 
@@ -450,7 +450,7 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
         </div>
 
         {/* ── Error Banner ── */}
-        {tasksError && (
+        {(tasksError || appsError) && (
           <div
             role="alert"
             aria-live="assertive"
@@ -458,11 +458,9 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
           >
             <div className="flex items-center gap-2">
               <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-              {tasksError}
+              {tasksError || appsError}
             </div>
-            <button onClick={clearError} className="text-red-400 hover:text-red-200 font-semibold underline">
-              Dismiss
-            </button>
+            <div className="flex items-center gap-3"><button id="btn-retry-career-data" type="button" onClick={() => { void retryLoadTasks(); void retryLoadApplications(); }} className="inline-flex items-center gap-1 text-red-300 hover:text-white font-semibold underline"><RefreshCcw className="h-3 w-3" aria-hidden="true" />Retry</button><button id="btn-dismiss-career-error" type="button" onClick={clearError} className="text-red-400 hover:text-red-200 font-semibold underline">Dismiss</button></div>
           </div>
         )}
 

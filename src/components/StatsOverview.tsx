@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Award, Zap, Bookmark, CheckCircle2, BarChart3, Sparkles } from 'lucide-react';
-import { InsightsDashboardModal } from './InsightsDashboardModal';
+import { LoadingFallback } from './LoadingFallback';
+
+const InsightsDashboardModal = lazy(() => import('./InsightsDashboardModal').then(module => ({ default: module.InsightsDashboardModal })));
 
 export const StatsOverview: React.FC = () => {
   const { opportunities, matchResults, savedIds } = useApp();
@@ -102,10 +104,7 @@ export const StatsOverview: React.FC = () => {
       </div>
 
       {/* Decision Insights Modal */}
-      <InsightsDashboardModal
-        isOpen={isInsightsOpen}
-        onClose={() => setIsInsightsOpen(false)}
-      />
+      {isInsightsOpen && <Suspense fallback={<div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4"><LoadingFallback label="Loading decision analytics…" /></div>}><InsightsDashboardModal isOpen onClose={() => setIsInsightsOpen(false)} /></Suspense>}
     </>
   );
 };

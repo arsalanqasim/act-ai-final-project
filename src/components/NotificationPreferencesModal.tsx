@@ -25,6 +25,15 @@ export const NotificationPreferencesModal: React.FC<Props> = ({ isOpen, onClose 
       });
   }, [isOpen, isAuthenticated, supabaseUser]);
   if (!isOpen) return null;
+  if (!isAuthenticated || !supabaseUser || !isSupabaseConfigured) {
+    return <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4" role="presentation">
+      <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="notification-preferences-title" className="glass-panel w-full max-w-lg rounded-3xl p-6">
+        <div className="flex items-start justify-between gap-4"><div><h2 id="notification-preferences-title" className="font-['Outfit'] text-xl font-bold text-white">Email alerts</h2><p className="mt-1 text-xs text-slate-400">Account-only settings for secure email delivery.</p></div><button id="btn-close-notification-preferences" aria-label="Close notification preferences" onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-800"><X /></button></div>
+        <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"><p className="font-semibold">Sign in required</p><p className="mt-1 text-xs text-amber-300/80">Email alert preferences are not available in guest mode. Sign in to securely save them to your account.</p></div>
+        <div className="mt-6 flex justify-end gap-3"><button id="btn-cancel-notification-preferences" onClick={onClose} className="rounded-xl px-4 py-2 text-sm text-slate-300">Close</button><button id="btn-sign-in-notification-preferences" onClick={() => { setAuthMode('login'); setIsAuthModalOpen(true); onClose(); }} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950">Sign in</button></div>
+      </section>
+    </div>;
+  }
   const save = async () => {
     if (!isAuthenticated || !supabaseUser || !isSupabaseConfigured) {
       setAuthMode('login'); setIsAuthModalOpen(true); return;

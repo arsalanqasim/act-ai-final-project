@@ -220,11 +220,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       textToParse = extractReadableTextFromHtml(rawHtml);
       sourceUrlForProvenance = data.url;
       isUrlFetched = true;
-    } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : 'Failed to fetch contents from target URL.';
+    } catch {
       res.statusCode = 400;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ success: false, error: `URL Ingestion Error: ${errMsg}` }));
+      res.end(JSON.stringify({ success: false, error: 'URL ingestion failed. Check the URL and try again.' }));
       return;
     }
   } else {
@@ -238,7 +237,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({
       success: false,
-      error: 'GEMINI_API_KEY environment variable is not configured on server.',
+      error: 'Secure ingestion is temporarily unavailable.',
       engineMode: 'Local Heuristic Engine'
     }));
     return;

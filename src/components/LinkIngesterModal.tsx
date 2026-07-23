@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ingestOpportunityWithProvenance } from '../services/geminiService';
 import { findApprovedSource, APPROVED_SOURCES_REGISTRY } from '../config/approvedSources';
@@ -7,6 +7,7 @@ import {
   X, Sparkles, PlusCircle, FileText, Loader2, Link2, CheckCircle2,
   AlertTriangle, ShieldCheck, Info, ChevronDown, ChevronUp, Edit3, ArrowLeft
 } from 'lucide-react';
+import { useAccessibleModal } from '../hooks/useAccessibleModal';
 
 export const LinkIngesterModal: React.FC = () => {
   const { isIngesterOpen, setIsIngesterOpen, addOpportunity } = useApp();
@@ -22,6 +23,8 @@ export const LinkIngesterModal: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [previewOpp, setPreviewOpp] = useState<Opportunity | null>(null);
   const [duplicateInfo, setDuplicateInfo] = useState<{ isDuplicate: boolean; existingId?: string; message?: string } | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useAccessibleModal(isIngesterOpen, dialogRef, () => setIsIngesterOpen(false));
 
   if (!isIngesterOpen) return null;
 
@@ -105,7 +108,7 @@ Apply: https://devpost.com/hackathons/agentic-ai-2026`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="glass-panel relative w-full max-w-2xl rounded-3xl p-6 sm:p-8 border-slate-700 shadow-2xl transition-all">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="ingester-modal-title" className="glass-panel relative w-full max-w-2xl rounded-3xl p-6 sm:p-8 border-slate-700 shadow-2xl transition-all">
 
         {/* Close Button */}
         <button
@@ -122,7 +125,7 @@ Apply: https://devpost.com/hackathons/agentic-ai-2026`;
             <Sparkles className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="font-['Outfit'] text-xl font-bold text-white">Trusted Opportunity Ingestion Agent</h2>
+          <h2 id="ingester-modal-title" className="font-['Outfit'] text-xl font-bold text-white">Trusted Opportunity Ingestion Agent</h2>
             <p className="text-xs text-slate-400">Extract structured listings with verified domain provenance and trust metrics.</p>
           </div>
         </div>

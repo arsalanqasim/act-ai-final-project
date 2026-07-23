@@ -1,4 +1,5 @@
 import React from 'react';
+import { reportClientError } from '../services/errorReporting';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -28,5 +29,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       );
     }
     return this.props.children;
+  }
+
+  public componentDidCatch(error: Error): void {
+    reportClientError(error, { area: 'render', feature: 'application-shell', operation: 'render-boundary' });
   }
 }

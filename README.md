@@ -318,6 +318,54 @@ npm test
 
 7. **Keyboard accessibility**:
    - Tab through all controls; all buttons have descriptive `aria-label` attributes.
+
+---
+
+## 16. Phase 5 Production Readiness
+
+### Performance and deferred features
+
+The opportunity feed, filters, matching engine, and core navigation remain in the initial bundle. Career Workspace, Application Workspace, Decision Analytics, ingestion, Copilot, Profile, and Notification Preferences load with `React.lazy` only when opened. Modal fallbacks expose a live loading status and preserve Escape/focus behavior after the deferred dialog mounts.
+
+Measured with `npm run build` on the same base and Phase 5 source trees:
+
+| Measurement | Base commit `34357c3` | Phase 5 | Change |
+| :--- | ---: | ---: | ---: |
+| Initial JavaScript entry, minified | 593.44 KB | 487.08 KB | -106.36 KB (-17.9%) |
+| Initial JavaScript entry, gzip | 156.22 KB | 135.28 KB | -20.94 KB (-13.4%) |
+| CSS, minified | 36.50 KB | 37.81 KB | +1.31 KB |
+
+The Phase 5 build also emits separate deferred chunks, including Career Workspace (46.24 KB minified / 11.69 KB gzip), Decision Analytics (21.20 KB / 5.55 KB), and Application Workspace (15.61 KB / 4.35 KB). These are build measurements, not Lighthouse scores or deployment claims.
+
+### PWA and offline behavior
+
+- Production builds include `/manifest.webmanifest`, dark theme metadata, mobile/Apple metadata, and SVG application icons.
+- The service worker caches the app shell and static hashed assets for a repeat visit/offline shell. It does not cache `/api/*`, Supabase responses, authentication state, resumes, tokens, or provider secrets.
+- The app shows an offline banner when browser connectivity is unavailable. Guest bookmarks, custom opportunities, applications, and tasks continue to use local storage. Authenticated cloud reads retain the local snapshot when a fetch fails and expose a retry control; cloud writes may require a later retry.
+- A deployed service-worker update displays a keyboard-accessible refresh prompt. Service-worker registration is skipped in development, so local Vite runs do not depend on it.
+
+Install from a production HTTPS deployment using the browser’s install icon or **Install OpportunityPulse** menu item. Service-worker installability cannot be verified from `localhost` alone; verify it manually after deployment.
+
+### Quality commands
+
+```bash
+npm.cmd run lint
+npm.cmd test
+npm.cmd run typecheck:server
+npm.cmd run build
+npm.cmd run test:e2e
+git diff --check
+```
+
+The browser suite uses Playwright against the production preview on port `4173` and requires Chromium (`npx playwright install chromium`). It runs without Gemini, Resend, or Supabase secrets. CI runs lint, the 87-test Vitest unit suite, server-route type checking, a production build, and the six-workflow Playwright suite.
+
+### Manual browser verification still required
+
+Before release, manually verify at 360 px, 768 px, and desktop widths: navbar no-overflow, feed filters, touch targets, each deferred modal, all Career Workspace tabs, notification sign-in gate, offline banner, retry states, service-worker install, and the update-available refresh flow after a second deployment. Also verify authenticated Supabase/RLS behavior with a non-production test account; automated tests intentionally use guest/local mode.
+
+### Client-safe diagnostics and server errors
+
+`src/services/errorReporting.ts` provides local-only, metadata-only diagnostics. It does not transmit personal content, resumes, access tokens, or API keys, and no paid monitoring service is required. API routes return a consistent `{ success, error, data? }` JSON shape for the covered responses, use appropriate HTTP status codes, and keep provider/internal error details server-side.
    - Press `Escape` anywhere in the modal to close it.
    - Kanban move buttons (`‹`/`›`) are keyboard-focusable and announce the action via `aria-label`.
 

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { PlusCircle, User, Settings, Bookmark, Zap, LogIn, LogOut, ChevronDown, Shield, Cpu, Bell, LayoutDashboard } from 'lucide-react';
-import { NotificationPreferencesModal } from './NotificationPreferencesModal';
+import { LoadingFallback } from './LoadingFallback';
+
+const NotificationPreferencesModal = lazy(() => import('./NotificationPreferencesModal').then(module => ({ default: module.NotificationPreferencesModal })));
 
 interface NavbarProps {
   onOpenCareerCenter?: () => void;
@@ -31,19 +33,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCareerCenter }) => {
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-slate-800 bg-[#0B0F19]/85 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+      <div className="mx-auto flex min-w-0 max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:px-6">
         
         {/* Brand Logo */}
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 shadow-lg shadow-cyan-500/20">
             <Zap className="h-5 w-5 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-['Outfit'] text-xl font-bold tracking-tight text-white">
+              <span className="truncate font-['Outfit'] text-base font-bold tracking-tight text-white sm:text-xl">
                 Opportunity<span className="text-cyan-400">Pulse</span> AI
               </span>
-              <span className="rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-400 border border-cyan-500/20">
+              <span className="hidden rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-400 border border-cyan-500/20 sm:inline">
                 HEC ACT-AI
               </span>
             </div>
@@ -52,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCareerCenter }) => {
         </div>
 
         {/* Action Buttons & User Auth Menu */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-3">
           
           {/* AI Engine Status Badge */}
           <button
@@ -187,7 +189,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCareerCenter }) => {
                 className="flex items-center gap-1.5 rounded-xl bg-cyan-500/20 border border-cyan-500/30 px-3.5 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/30 transition-all"
               >
                 <LogIn className="h-4 w-4" />
-                <span>Log In / Sign Up</span>
+                <span className="hidden sm:inline">Log In / Sign Up</span>
+                <span className="sm:hidden">Log in</span>
               </button>
             </div>
           )}
@@ -195,7 +198,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCareerCenter }) => {
         </div>
 
       </div>
-      <NotificationPreferencesModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
+      {isNotificationsOpen && <Suspense fallback={<div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4"><LoadingFallback label="Loading notification preferences…" /></div>}><NotificationPreferencesModal isOpen onClose={() => setIsNotificationsOpen(false)} /></Suspense>}
     </header>
   );
 };

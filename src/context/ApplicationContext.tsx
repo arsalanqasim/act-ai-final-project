@@ -23,6 +23,7 @@ interface ApplicationContextType {
   archiveApplication: (id: string) => Promise<ApplicationRecord>;
   deleteApplication: (id: string) => Promise<void>;
   clearError: () => void;
+  retryLoadApplications: () => Promise<void>;
 }
 
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
@@ -327,7 +328,8 @@ export const ApplicationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         updateStatus,
         archiveApplication,
         deleteApplication,
-        clearError
+        clearError,
+        retryLoadApplications: loadApplications
       }}
     >
       {children}

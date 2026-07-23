@@ -4,6 +4,7 @@ import { INITIAL_USER_PROFILE, INITIAL_OPPORTUNITIES } from '../services/mockDat
 import { evaluateMatchWithGemini } from '../services/geminiService';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { reportClientError } from '../services/errorReporting';
 
 interface AppContextType {
   userProfile: UserProfile;
@@ -25,6 +26,8 @@ interface AppContextType {
   copilotOpp: Opportunity | null;
   setCopilotOpp: (opp: Opportunity | null) => void;
   isLoadingMatches: boolean;
+  dataError: string | null;
+  retryDataLoad: () => Promise<void>;
   engineMode: EngineMode;
   setEngineMode: (mode: EngineMode) => void;
 }
@@ -56,18 +59,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [customOpportunities, setCustomOpportunities] = useState<Opportunity[]>([]);
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [engineMode, setEngineMode] = useState<EngineMode>('Local Heuristic Engine');
+  const [dataError, setDataError] = useState<string | null>(null);
 
   // Combined opportunities (Static seed + Custom ingested)
   const opportunities = React.useMemo(() => {
     return [...customOpportunities, ...INITIAL_OPPORTUNITIES];
   }, [customOpportunities]);
 
-  // Load user app data (Bookmarks & Custom Opportunities) from Supabase or localStorage
-  useEffect(() => {
-    let isMounted = true;
+  const loadLocalSnapshot = useCallback(() => {
+    const savedLoc = localStorage.getItem(LOCAL_SAVED_KEY);
+    if (savedLoc) {
+      try {
+        const parsed: unknown = JSON.parse(savedLoc);
+        if (Array.isArray(parsed) && parsed.every((id): id is string => typeof id === 'string')) setSavedIds(parsed);
+      } catch (error: unknown) {
+        reportClientError(error, { area: 'storage', feature: 'opportunity-data', operation: 'read-saved-ids' });
+      }
+    } else if (!isAuthenticated) {
+      setSavedIds(['opp_001', 'opp_005']);
+    }
 
-    const loadData = async () => {
-      if (isAuthenticated && supabaseUser && isSupabaseConfigured) {
+    const oppsLoc = localStorage.getItem(LOCAL_OPPS_KEY);
+    if (oppsLoc) {
+      try {
+        const parsed: unknown = JSON.parse(oppsLoc);
+        if (Array.isArray(parsed)) setCustomOpportunities(parsed as Opportunity[]);
+      } catch (error: unknown) {
+        reportClientError(error, { area: 'storage', feature: 'opportunity-data', operation: 'read-custom-opportunities' });
+      }
+    }
+  }, [isAuthenticated]);
+
+  // Load user app data from Supabase while preserving the local snapshot on failure.
+  const loadData = useCallback(async () => {
+    setDataError(null);
+    loadLocalSnapshot();
+
+    if (isAuthenticated && supabaseUser && isSupabaseConfigured) {
         // Load Bookmarks from Supabase
         try {
           const { data: savedData, error: savedErr } = await supabase
@@ -75,12 +103,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             .select('opportunity_id')
             .eq('user_id', supabaseUser.id);
 
-          if (!savedErr && savedData && isMounted) {
+          if (!savedErr && savedData) {
             const ids = (savedData as SavedOpportunityRow[]).map(s => s.opportunity_id);
             setSavedIds(ids);
+          } else if (savedErr) {
+            setDataError('Cloud sync is unavailable. Your local opportunity data is still available.');
           }
-        } catch (e) {
-          console.error('Error fetching saved opportunities from Supabase:', e);
+        } catch (error: unknown) {
+          reportClientError(error, { area: 'network', feature: 'opportunity-data', operation: 'load-saved-ids' });
+          setDataError('Cloud sync is unavailable. Your local opportunity data is still available.');
         }
 
         // Load Custom Opportunities from Supabase
@@ -91,7 +122,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             .eq('user_id', supabaseUser.id)
             .order('created_at', { ascending: false });
 
-          if (!oppErr && oppData && isMounted) {
+          if (!oppErr && oppData) {
             const opps: Opportunity[] = (oppData as CustomOpportunityRow[]).map(row => ({
               id: row.id,
               title: row.title,
@@ -117,32 +148,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               contentHash: row.content_hash || undefined
             }));
             setCustomOpportunities(opps);
+          } else if (oppErr) {
+            setDataError('Cloud sync is unavailable. Your local opportunity data is still available.');
           }
-        } catch (e) {
-          console.error('Error fetching custom opportunities from Supabase:', e);
+        } catch (error: unknown) {
+          reportClientError(error, { area: 'network', feature: 'opportunity-data', operation: 'load-custom-opportunities' });
+          setDataError('Cloud sync is unavailable. Your local opportunity data is still available.');
         }
-      } else {
-        // Guest mode fallback: load from localStorage
-        const savedLoc = localStorage.getItem(LOCAL_SAVED_KEY);
-        if (savedLoc) {
-          try { setSavedIds(JSON.parse(savedLoc)); } catch (e) { console.error(e); }
-        } else {
-          setSavedIds(['opp_001', 'opp_005']);
-        }
+    }
+  }, [isAuthenticated, loadLocalSnapshot, supabaseUser]);
 
-        const oppsLoc = localStorage.getItem(LOCAL_OPPS_KEY);
-        if (oppsLoc) {
-          try { setCustomOpportunities(JSON.parse(oppsLoc)); } catch (e) { console.error(e); }
-        }
-      }
-    };
-
-    loadData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [isAuthenticated, supabaseUser, isGuest]);
+  useEffect(() => { void loadData(); }, [loadData, isGuest]);
 
   // Filters
   const [filters, setFilters] = useState<FilterState>({
@@ -202,14 +218,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         if (error) {
           console.error('Error inserting custom opportunity to Supabase:', error);
-          setCustomOpportunities(prev => prev.filter(candidate => candidate.id !== opp.id));
+          setDataError('Could not sync this opportunity. It remains available in your local collection.');
           throw new Error(error.code === '23505'
             ? 'This opportunity is already in your collection.'
             : 'Could not save this opportunity. Please try again.');
         }
       } catch (e) {
         console.error('Failed to insert custom opportunity to Supabase:', e);
-        setCustomOpportunities(prev => prev.filter(candidate => candidate.id !== opp.id));
+        const existingRaw = localStorage.getItem(LOCAL_OPPS_KEY);
+        let existing: Opportunity[] = [];
+        if (existingRaw) {
+          try {
+            const parsed: unknown = JSON.parse(existingRaw);
+            if (Array.isArray(parsed)) existing = parsed as Opportunity[];
+          } catch (storageError: unknown) {
+            reportClientError(storageError, { area: 'storage', feature: 'opportunity-data', operation: 'write-custom-opportunity' });
+          }
+        }
+        if (!existing.some(candidate => candidate.id === opp.id)) {
+          localStorage.setItem(LOCAL_OPPS_KEY, JSON.stringify([opp, ...existing]));
+        }
+        setDataError('Could not sync this opportunity. It remains available in your local collection.');
         throw e;
       }
     } else {
@@ -239,7 +268,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
           if (error) {
             console.error('Error deleting saved opportunity:', error);
-            setSavedIds(savedIds); // Revert optimistic state
+            localStorage.setItem(LOCAL_SAVED_KEY, JSON.stringify(updatedIds));
+            setDataError('Bookmark sync failed. Your change is saved locally and can retry later.');
           }
         } else {
           const { error } = await supabase
@@ -251,12 +281,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
           if (error) {
             console.error('Error saving opportunity:', error);
-            setSavedIds(savedIds); // Revert optimistic state
+            localStorage.setItem(LOCAL_SAVED_KEY, JSON.stringify(updatedIds));
+            setDataError('Bookmark sync failed. Your change is saved locally and can retry later.');
           }
         }
       } catch (e) {
         console.error('Failed to update bookmark on Supabase:', e);
-        setSavedIds(savedIds); // Revert
+        localStorage.setItem(LOCAL_SAVED_KEY, JSON.stringify(updatedIds));
+        setDataError('Bookmark sync failed. Your change is saved locally and can retry later.');
       }
     } else {
       localStorage.setItem(LOCAL_SAVED_KEY, JSON.stringify(updatedIds));
@@ -309,6 +341,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         copilotOpp,
         setCopilotOpp,
         isLoadingMatches,
+        dataError,
+        retryDataLoad: loadData,
         engineMode,
         setEngineMode
       }}

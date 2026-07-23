@@ -7,7 +7,7 @@ on:
     branches: [ master, main ]
 
 jobs:
-  build-and-lint:
+  quality:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,5 +26,36 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      - name: Run unit tests
+        run: npm test
+
+      - name: Check server routes
+        run: npm run typecheck:server
+
       - name: Run TypeScript & Vite Build
         run: npm run build
+
+  browser:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build production preview
+        run: npm run build
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser suite
+        run: npm run test:e2e

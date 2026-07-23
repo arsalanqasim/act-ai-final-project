@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { generateCopilotPitchWithGemini } from '../services/geminiService';
 import { EngineMode } from '../types';
 import { X, Sparkles, Copy, Check, Download, Loader2, Cpu } from 'lucide-react';
+import { useAccessibleModal } from '../hooks/useAccessibleModal';
 
 export const CopilotModal: React.FC = () => {
   const { copilotOpp, setCopilotOpp, userProfile } = useApp();
@@ -10,6 +11,8 @@ export const CopilotModal: React.FC = () => {
   const [pitchEngineMode, setPitchEngineMode] = useState<EngineMode>('Local Heuristic Engine');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useAccessibleModal(copilotOpp !== null, dialogRef, () => setCopilotOpp(null));
 
   const generatePitch = useCallback(async () => {
     if (!copilotOpp) return;
@@ -51,7 +54,7 @@ export const CopilotModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="glass-panel relative w-full max-w-3xl rounded-3xl p-6 sm:p-8 border-slate-700 shadow-2xl my-8">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="copilot-modal-title" className="glass-panel relative w-full max-w-3xl rounded-3xl p-6 sm:p-8 border-slate-700 shadow-2xl my-8">
         
         {/* Close Button */}
         <button
@@ -69,7 +72,7 @@ export const CopilotModal: React.FC = () => {
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-['Outfit'] text-xl font-bold text-white">Application Copilot Agent</h2>
+              <h2 id="copilot-modal-title" className="font-['Outfit'] text-xl font-bold text-white">Application Copilot Agent</h2>
               <p className="text-xs text-slate-400">Customized 1-Page Pitch for <strong>{copilotOpp.title}</strong></p>
             </div>
           </div>

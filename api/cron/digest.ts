@@ -1,15 +1,15 @@
 import type { IncomingMessage, ServerResponse } from 'http';
 import { createClient } from '@supabase/supabase-js';
 
-function send(res: ServerResponse, status: number, body: unknown) { res.statusCode = status; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(body)); }
+function send(res: ServerResponse, status: number, body: { success: boolean; error?: string; data?: Record<string, unknown> }) { res.statusCode = status; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(body)); }
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
-  if (req.method !== 'GET') return send(res, 405, { error: 'Method not allowed' });
-  if (!process.env.CRON_SECRET || req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) return send(res, 401, { error: 'Unauthorized' });
+  if (req.method !== 'GET') return send(res, 405, { success: false, error: 'Method not allowed' });
+  if (!process.env.CRON_SECRET || req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) return send(res, 401, { success: false, error: 'Unauthorized' });
   const url = process.env.SUPABASE_URL; const key = process.env.SUPABASE_SERVICE_ROLE_KEY; const resend = process.env.RESEND_API_KEY; const from = process.env.EMAIL_FROM;
-  if (!url || !key || !resend || !from) return send(res, 503, { error: 'Notification service is not configured' });
+  if (!url || !key || !resend || !from) return send(res, 503, { success: false, error: 'Notification service is not configured' });
   const admin = createClient(url, key);
   const { data: prefs, error } = await admin.from('notification_preferences').select('*').eq('enabled', true);
-  if (error) return send(res, 500, { error: 'Could not load preferences' });
+  if (error) return send(res, 500, { success: false, error: 'Could not load preferences' });
   let sent = 0;
   for (const preference of prefs ?? []) {
     const { data: profile } = await admin.from('profiles').select('email,name').eq('id', preference.user_id).maybeSingle();
@@ -25,5 +25,5 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     await admin.from('notification_deliveries').upsert(fresh.map(opp => ({ user_id: preference.user_id, opportunity_id: opp.id, delivery_window: window, status: 'sent', sent_at: new Date().toISOString(), metadata: { source: 'cron' } })), { onConflict: 'user_id,opportunity_id,delivery_window' });
     sent += fresh.length;
   }
-  return send(res, 200, { ok: true, sent });
+  return send(res, 200, { success: true, data: { sent } });
 }

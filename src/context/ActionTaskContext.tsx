@@ -38,6 +38,7 @@ interface ActionTaskContextType {
   reopenTask: (id: string) => Promise<ActionTask>;
   deleteTask: (id: string) => Promise<void>;
   clearError: () => void;
+  retryLoadTasks: () => Promise<void>;
 }
 
 const ActionTaskContext = createContext<ActionTaskContextType | undefined>(undefined);
@@ -352,6 +353,7 @@ export const ActionTaskProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         reopenTask,
         deleteTask,
         clearError,
+        retryLoadTasks: loadTasks,
       }}
     >
       {children}

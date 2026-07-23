@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { NotificationDeliveryRow } from '../types';
@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Loader2,
   Lock,
+  RefreshCcw,
 } from 'lucide-react';
 
 const STATUS_CONFIG: Record<
@@ -44,18 +45,15 @@ export const NotificationHistoryPanel: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadHistory = useCallback(async (): Promise<void> => {
     if (!isAuthenticated || !supabaseUser || !isSupabaseConfigured) {
       setDeliveries([]);
       return;
     }
 
-    let cancelled = false;
     setIsLoading(true);
     setFetchError(null);
-
-    const load = async () => {
-      try {
+    try {
         const { data, error } = await supabase
           .from('notification_deliveries')
           .select('*')
@@ -63,27 +61,19 @@ export const NotificationHistoryPanel: React.FC = () => {
           .order('created_at', { ascending: false })
           .limit(50);
 
-        if (cancelled) return;
-
         if (error) {
-          setFetchError(`Could not load notification history: ${error.message}`);
+          setFetchError('Could not load notification history. Please retry.');
         } else {
           setDeliveries((data ?? []) as NotificationDeliveryRow[]);
         }
-      } catch (err) {
-        if (!cancelled) {
-          setFetchError(err instanceof Error ? err.message : 'Unknown error');
-        }
+      } catch {
+        setFetchError('Could not load notification history. Please retry.');
       } finally {
-        if (!cancelled) setIsLoading(false);
+        setIsLoading(false);
       }
-    };
-
-    load();
-    return () => {
-      cancelled = true;
-    };
   }, [isAuthenticated, supabaseUser]);
+
+  useEffect(() => { void loadHistory(); }, [loadHistory]);
 
   if (!isAuthenticated) {
     return (
@@ -108,12 +98,13 @@ export const NotificationHistoryPanel: React.FC = () => {
 
   if (fetchError) {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300">
         <AlertCircle className="h-4 w-4 shrink-0" />
-        <div>
+        <div className="flex-1">
           <p className="font-semibold">Failed to load notification history</p>
           <p className="text-red-400/80 mt-0.5">{fetchError}</p>
         </div>
+        <button id="btn-retry-notification-history" type="button" onClick={() => void loadHistory()} className="inline-flex items-center gap-1 rounded-lg border border-red-400/30 px-2.5 py-1.5 font-semibold hover:bg-red-500/20 focus:outline-none focus:ring-2 focus:ring-red-300"><RefreshCcw className="h-3.5 w-3.5" aria-hidden="true" /> Retry</button>
       </div>
     );
   }

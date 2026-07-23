@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApplications } from '../context/ApplicationContext';
 import { ApplicationStatus, ChecklistItem, ApplicationRecord } from '../types';
 import { STATUS_CONFIGS, ALL_APPLICATION_STATUSES } from '../features/applications/utils';
+import { useAccessibleModal } from '../hooks/useAccessibleModal';
 import { getDeadlineStatus } from '../utils/dateUtils';
 import {
   X,
@@ -46,6 +47,8 @@ export const ApplicationWorkspaceModal: React.FC = () => {
   const [newChecklistItem, setNewChecklistItem] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useAccessibleModal(activeModalOpp !== null, dialogRef, closeWorkspaceModal);
 
   useEffect(() => {
     if (!activeModalOpp) {
@@ -193,6 +196,7 @@ export const ApplicationWorkspaceModal: React.FC = () => {
         role="dialog"
         aria-modal="true"
         aria-labelledby="application-workspace-title"
+        ref={dialogRef}
         className="glass-panel relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-slate-700/80 bg-[#0B0F19]/95 text-slate-100 shadow-2xl overflow-hidden my-8"
       >
         <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-900/60">

@@ -10,9 +10,8 @@ import { getDeadlineStatus } from './dateUtils';
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-function daysFromNow(isoDate: string | null | undefined): number | null {
+function daysFromNow(isoDate: string | null | undefined, now: Date = new Date()): number | null {
   if (!isoDate) return null;
-  const now = new Date();
   const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const target = new Date(isoDate);
   const targetMidnight = new Date(target.getFullYear(), target.getMonth(), target.getDate());
@@ -62,7 +61,7 @@ export function prioritizeTask(
   else if (task.priority === 'high') reasons.push('High priority task');
 
   // Due date urgency
-  const daysLeft = daysFromNow(task.dueAt);
+  const daysLeft = daysFromNow(task.dueAt, _now);
   if (daysLeft !== null) {
     if (daysLeft < 0) {
       score += 35;
@@ -172,7 +171,7 @@ export function prioritizeApplication(
   }
 
   // Next action overdue
-  const nextActionDays = daysFromNow(app.nextActionAt);
+  const nextActionDays = daysFromNow(app.nextActionAt, _now);
   if (nextActionDays !== null && nextActionDays < 0) {
     score += 20;
     reasons.push('Your next action date has passed');
