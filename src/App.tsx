@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import { ApplicationProvider } from './context/ApplicationContext';
+import { ActionTaskProvider } from './context/ActionTaskContext';
 import { Navbar } from './components/Navbar';
 import { HeroHeader } from './components/HeroHeader';
 import { StatsOverview } from './components/StatsOverview';
@@ -13,18 +14,21 @@ import { SettingsModal } from './components/SettingsModal';
 import { AuthModal } from './components/AuthModal';
 import { OnboardingWizard } from './components/OnboardingWizard';
 import { ApplicationWorkspaceModal } from './components/ApplicationWorkspaceModal';
+import { CareerCommandCenterModal } from './components/CareerCommandCenterModal';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { Zap, Github, Heart } from 'lucide-react';
 
 const AppContent: React.FC = () => {
   const isOnline = useNetworkStatus();
+  const [isCareerCenterOpen, setIsCareerCenterOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
       
       <div>
         {!isOnline && <div role="status" className="bg-amber-500 px-4 py-2 text-center text-xs font-semibold text-slate-950">You are offline. New changes will not sync until your connection returns.</div>}
         {/* Navigation Bar */}
-        <Navbar />
+        <Navbar onOpenCareerCenter={() => setIsCareerCenterOpen(true)} />
 
         {/* Hero Header */}
         <HeroHeader />
@@ -43,6 +47,12 @@ const AppContent: React.FC = () => {
       <SettingsModal />
       <AuthModal />
       <OnboardingWizard />
+
+      {/* Phase 4: Career Command Center */}
+      <CareerCommandCenterModal
+        isOpen={isCareerCenterOpen}
+        onClose={() => setIsCareerCenterOpen(false)}
+      />
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 bg-slate-950 py-8 px-4 sm:px-6 mt-16">
@@ -84,8 +94,10 @@ export function App() {
     <AuthProvider>
       <AppProvider>
         <ApplicationProvider>
-          <AppContent />
-          <ApplicationWorkspaceModal />
+          <ActionTaskProvider>
+            <AppContent />
+            <ApplicationWorkspaceModal />
+          </ActionTaskProvider>
         </ApplicationProvider>
       </AppProvider>
     </AuthProvider>

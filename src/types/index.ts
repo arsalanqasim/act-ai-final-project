@@ -212,6 +212,67 @@ export interface ApplicationRecord {
   checklist: ChecklistItem[];
 }
 
+// Phase 4: Career Action Task Types
+export type ActionPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface ActionTask {
+  id: string;
+  userId: string;
+  applicationId: string | null;
+  opportunityId: string | null;
+  title: string;
+  description: string;
+  dueAt: string | null;
+  priority: ActionPriority;
+  completed: boolean;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ActionTaskRow {
+  id: string;
+  user_id: string;
+  application_id: string | null;
+  opportunity_id: string | null;
+  title: string;
+  description: string;
+  due_at: string | null;
+  priority: ActionPriority;
+  completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PrioritizedAction {
+  type: 'task' | 'application' | 'saved_opportunity';
+  id: string;
+  title: string;
+  subtitle: string;
+  score: number; // 0-100 internal priority score
+  reasons: string[]; // Deterministic explanation strings
+  urgency: 'critical' | 'high' | 'medium' | 'low';
+  dueDate: string | null;
+  applicationId?: string;
+  opportunityId?: string;
+  taskId?: string;
+}
+
+// Phase 4: Notification History Row
+export interface NotificationDeliveryRow {
+  id: string;
+  user_id: string;
+  opportunity_id: string;
+  application_id: string | null;
+  delivery_window: string;
+  status: 'queued' | 'sent' | 'failed' | 'suppressed';
+  provider_message_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  sent_at: string | null;
+}
+
 export interface ApplicationRow {
   id: string;
   user_id: string;

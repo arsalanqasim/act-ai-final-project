@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { PlusCircle, User, Settings, Bookmark, Zap, LogIn, LogOut, ChevronDown, Shield, Cpu, Bell } from 'lucide-react';
+import { PlusCircle, User, Settings, Bookmark, Zap, LogIn, LogOut, ChevronDown, Shield, Cpu, Bell, LayoutDashboard } from 'lucide-react';
 import { NotificationPreferencesModal } from './NotificationPreferencesModal';
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  onOpenCareerCenter?: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ onOpenCareerCenter }) => {
   const { 
     savedIds, 
     setIsProfileOpen, 
@@ -75,6 +79,17 @@ export const Navbar: React.FC = () => {
             <span className="sm:hidden">Ingest</span>
           </button>
 
+          {/* Career Workspace button */}
+          <button
+            id="btn-open-career-workspace"
+            onClick={onOpenCareerCenter}
+            className="hidden md:flex items-center gap-1.5 rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-3 py-1.5 text-xs font-semibold text-indigo-300 transition-all hover:bg-indigo-500/20 hover:text-indigo-200"
+            title="My Career Workspace"
+          >
+            <LayoutDashboard className="h-3.5 w-3.5" />
+            <span>Career Workspace</span>
+          </button>
+
           {/* Bookmarks */}
           <button
             id="btn-bookmarks"
@@ -128,8 +143,16 @@ export const Navbar: React.FC = () => {
                   </div>
 
                   <button
+                    id="btn-career-workspace-dropdown"
+                    onClick={() => { if (onOpenCareerCenter) onOpenCareerCenter(); setIsDropdownOpen(false); }}
+                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-cyan-300 hover:bg-cyan-500/10 hover:text-cyan-200 transition-colors mt-1"
+                  >
+                    <LayoutDashboard className="h-4 w-4 text-cyan-400" /> My Career Workspace
+                  </button>
+
+                  <button
                     onClick={() => { setIsProfileOpen(true); setIsDropdownOpen(false); }}
-                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors mt-1"
+                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
                   >
                     <User className="h-4 w-4 text-cyan-400" /> Edit Profile & Skills
                   </button>

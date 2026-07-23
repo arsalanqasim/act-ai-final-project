@@ -1,11 +1,11 @@
 # 🚀 OpportunityPulse AI — Agentic Opportunity Radar & Career Growth Platform
 
-> **HEC ACT-AI Capstone Project Report — Phase 2 Trusted Opportunity Ingestion, Source Provenance, & Verification Workflow**
+> **HEC ACT-AI Capstone Project Report — Phase 4: Career Execution Command Center**
 >
 > **Author / Maintainer**: Arsalan Qasim
 >
-> **Release**: Phase 2 Trusted Ingestion & Source Provenance Architecture
-> **Current Build Status**: Active (Phase 2 URL Ingestion & SSRF Protection, Approved Source Registry, Deterministic Trust Score Engine, Duplicate Prevention, Supabase Provenance RLS Schema)
+> **Release**: Phase 4 — Career Execution Command Center, Action Task System, Smart Prioritization
+> **Current Build Status**: Active (Phase 4 Career Workspace, Application Kanban, Action Tasks, Deadline Timeline, Smart Prioritization, Notification History, Supabase RLS Migration)
 
 ---
 
@@ -180,3 +180,144 @@ npm run build
 3. **Editable Preview & Trust Score Breakdown**: Click **Extract & Review Listing**. Review extracted fields (Title, Org, Deadline, Tech Stack, Description), edit any field, and view the Trust Score & Rationale panel.
 4. **Duplicate Prevention**: Ingest the same URL twice -> Observe the Duplicate Opportunity Warning Banner preventing duplicate creation.
 5. **Card Provenance Badges**: Observe opportunity cards rendering domain tags (`devpost.com`), verification state badges (`Verified Source` vs `Community`), and deadline status pills (`Closing soon` / `Expired`).
+
+---
+
+## 🖥️ 12. Phase 4: Career Execution Command Center
+
+Phase 4 transforms OpportunityPulse AI from an opportunity discovery tool into a **complete career workflow hub**.
+
+### Features Added
+
+#### My Career Workspace
+Open via the **Career Workspace** button in the navbar (or the user dropdown menu). The full-screen workspace contains five tabs:
+
+| Tab | Description |
+| :--- | :--- |
+| **Today's Actions** | Deterministic action queue ordered by urgency, with "Why this is next" explanations per item |
+| **Kanban Board** | 9-column application pipeline (Saved → Archived). Use ‹ › buttons to move cards between stages. |
+| **Deadline Timeline** | All tracked applications and saved opportunities ordered by days remaining. Expired items never promoted. |
+| **Progress** | Metrics: Active, Submitted, Interview, Offers, Pending Tasks, Overdue Actions, Completion Rate bar. |
+| **Notifications** | Read-only audit log of notification_deliveries for authenticated users. |
+
+#### Action Task System
+- Create tasks manually or from any application/opportunity card (`+` button on Kanban card).
+- Set title, description, priority (low / medium / high / urgent), and due date.
+- Complete ✓ or reopen tasks.
+- Delete with explicit confirmation step.
+- Guest users: tasks saved to `localStorage` under key `opp_pulse_action_tasks_v1`.
+- Authenticated users: tasks persisted in Supabase `action_tasks` table with full RLS.
+
+#### Smart Prioritization (`src/utils/actionPrioritization.ts`)
+Fully deterministic — no opaque AI. Each action is scored and explained:
+- `"Deadline in 2 days"` — urgency from opportunity deadline
+- `"High match score: 88%"` — from existing match results
+- `"Application is ready to submit"` — from application status
+- `"Official source"` — from trust tier (tier-1-official)
+- `"Your next action date has passed"` — from nextActionAt field
+- `"You saved this opportunity but have not started an application"` — from saved IDs vs applications
+- Expired opportunities are **never promoted** in the queue.
+- Low-trust/community listings are labeled accordingly.
+
+---
+
+## 💾 13. Phase 4 Database Migration
+
+### Migration file: `supabase/migrations/005_career_action_tasks.sql`
+
+```sql
+-- Creates action_tasks table with strict RLS and automatic timestamps
+CREATE TABLE IF NOT EXISTS public.action_tasks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  application_id UUID REFERENCES public.applications(id) ON DELETE SET NULL,
+  opportunity_id TEXT,
+  title TEXT NOT NULL CHECK (char_length(title) > 0 AND char_length(title) <= 500),
+  description TEXT NOT NULL DEFAULT '',
+  due_at TIMESTAMPTZ,
+  priority TEXT NOT NULL CHECK (priority IN ('low', 'medium', 'high', 'urgent')) DEFAULT 'medium',
+  completed BOOLEAN NOT NULL DEFAULT FALSE,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+-- + RLS policies (SELECT/INSERT/UPDATE/DELETE for auth.uid() = user_id)
+-- + Trigger: auto-sets updated_at, completed_at on completion, clears it on reopen
+```
+
+### Manual Supabase Action Required
+
+> [!IMPORTANT]
+> After pulling this branch, run the migration in your Supabase project:
+>
+> 1. Log in to [Supabase Console](https://supabase.com) → Your project → **SQL Editor**.
+> 2. Open `supabase/migrations/005_career_action_tasks.sql`.
+> 3. Copy the full SQL and execute it.
+> 4. Verify under **Table Editor** that `action_tasks` appears with the correct columns and RLS enabled.
+>
+> **Guest mode** (no Supabase) works automatically via `localStorage` — no migration needed.
+
+---
+
+## 🧪 14. Phase 4 Automated Tests
+
+**Test Files added:**
+- `src/__tests__/actionPrioritization.test.ts` — 24 tests covering:
+  - Priority ordering (score descending)
+  - Expired opportunity exclusion
+  - High-match / high-trust score boosts
+  - Task overdue/today/future urgency
+  - Application status tiers (ready_to_submit > drafting > saved)
+  - Integration: combined tasks + applications + saved opportunities
+- `src/__tests__/actionTaskStorage.test.ts` — 22 tests covering:
+  - Load/save/upsert/delete CRUD
+  - Empty-state safety (empty localStorage, invalid JSON, non-array)
+  - Serialization round-trip
+  - Lifecycle integration (create → update → complete → delete)
+
+**Full test suite: 8 test files, 87 tests pass.**
+
+```bash
+npm test
+# Test Files  8 passed (8)
+#      Tests  87 passed (87)
+```
+
+---
+
+## 🎓 15. Phase 4 Evaluator Walkthrough
+
+1. **Open Career Workspace**: Click **Career Workspace** button in navbar (visible on desktop). Or click your user avatar → **My Career Workspace** in the dropdown.
+
+2. **Today's Actions tab** (opens by default):
+   - Observe the deterministic action queue with urgency badges.
+   - Expand any item to read the "Why this is next" chip reasons.
+   - Click **New Task** → fill title, priority, due date → click **Create Task**.
+   - Complete a task using the circle toggle; reopen with the checkmark toggle.
+   - Delete a task using the trash icon + confirmation.
+
+3. **Kanban Board tab**:
+   - Find an application card in the Saved column.
+   - Click `›` to move it to Researching.
+   - Click the `+` icon on any card to create a linked task.
+   - Click the card title to open its full Application Workspace modal.
+
+4. **Deadline Timeline tab**:
+   - Observe applications and saved opportunities ordered by days remaining.
+   - Items with ≤7 days remaining appear with amber highlights.
+   - Expired items are de-emphasized and never promoted.
+
+5. **Progress tab**:
+   - View Active / Submitted / Interview / Offer / Task metrics.
+   - Completion rate bar tracks applications that reached submission or beyond.
+   - If overdue tasks exist, a red warning banner provides a quick-link to the Actions tab.
+
+6. **Notifications tab**:
+   - If authenticated: see the `notification_deliveries` audit log (sent/queued/failed/suppressed).
+   - If guest: displays a "Sign in to view" gate.
+
+7. **Keyboard accessibility**:
+   - Tab through all controls; all buttons have descriptive `aria-label` attributes.
+   - Press `Escape` anywhere in the modal to close it.
+   - Kanban move buttons (`‹`/`›`) are keyboard-focusable and announce the action via `aria-label`.
+
