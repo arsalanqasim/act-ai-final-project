@@ -1,19 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Sparkles, PlusCircle, User, Settings, Bookmark, Zap } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Sparkles, PlusCircle, User, Settings, Bookmark, Zap, LogIn, LogOut, ChevronDown, UserCheck } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { 
     savedIds, 
     setIsProfileOpen, 
     setIsIngesterOpen, 
-    setIsSettingsOpen, 
-    userProfile, 
-    apiKey 
+    setIsSettingsOpen 
   } = useApp();
 
+  const { 
+    currentUser, 
+    isAuthenticated, 
+    setIsAuthModalOpen, 
+    setAuthMode, 
+    logout 
+  } = useAuth();
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-slate-800 bg-[#0B0F19]/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 w-full border-b border-slate-800 bg-[#0B0F19]/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         
         {/* Brand Logo */}
@@ -34,7 +43,7 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons & User Auth Menu */}
         <div className="flex items-center gap-2 sm:gap-3">
           
           {/* AI Ingest Button */}
@@ -63,7 +72,7 @@ export const Navbar: React.FC = () => {
             )}
           </button>
 
-          {/* Settings */}
+          {/* AI Settings */}
           <button
             id="btn-settings"
             onClick={() => setIsSettingsOpen(true)}
@@ -71,22 +80,66 @@ export const Navbar: React.FC = () => {
             title="AI Settings"
           >
             <Settings className="h-4 w-4" />
-            {apiKey && (
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            )}
           </button>
 
-          {/* Profile Trigger */}
-          <button
-            id="btn-profile"
-            onClick={() => setIsProfileOpen(true)}
-            className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-300 transition-colors hover:border-cyan-500/40 hover:text-white"
-          >
-            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-600/30 text-indigo-400 font-bold text-[11px]">
-              {userProfile.name.charAt(0)}
+          {/* Auth State: User Menu or Login Button */}
+          {isAuthenticated && currentUser ? (
+            <div className="relative">
+              <button
+                id="btn-user-menu"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-1.5 text-xs text-slate-300 transition-all hover:border-cyan-500/40 hover:text-white"
+              >
+                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-600/40 text-indigo-300 font-bold text-[11px]">
+                  {currentUser.name.charAt(0)}
+                </div>
+                <span className="hidden font-semibold sm:inline">{currentUser.name.split(' ')[0]}</span>
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              </button>
+
+              {/* User Dropdown Menu */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-slate-800 bg-[#0F172A] p-2 shadow-2xl z-50">
+                  <div className="px-3 py-2 border-b border-slate-800">
+                    <p className="text-xs font-bold text-white truncate">{currentUser.name}</p>
+                    <p className="text-[11px] text-slate-400 truncate">{currentUser.email}</p>
+                  </div>
+
+                  <button
+                    onClick={() => { setIsProfileOpen(true); setIsDropdownOpen(false); }}
+                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+                  >
+                    <User className="h-4 w-4 text-cyan-400" /> Edit Profile & Skills
+                  </button>
+
+                  <button
+                    onClick={() => { setIsSettingsOpen(true); setIsDropdownOpen(false); }}
+                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+                  >
+                    <Settings className="h-4 w-4 text-indigo-400" /> AI Settings & Keys
+                  </button>
+
+                  <button
+                    id="btn-logout"
+                    onClick={() => { logout(); setIsDropdownOpen(false); }}
+                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors mt-1 border-t border-slate-800/80"
+                  >
+                    <LogOut className="h-4 w-4" /> Log Out
+                  </button>
+                </div>
+              )}
             </div>
-            <span className="hidden font-medium sm:inline">{userProfile.name.split(' ')[0]}</span>
-          </button>
+          ) : (
+            <button
+              id="btn-login-trigger"
+              onClick={() => { setAuthMode('login'); setIsAuthModalOpen(true); }}
+              className="flex items-center gap-1.5 rounded-xl bg-cyan-500/20 border border-cyan-500/30 px-3.5 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/30 transition-all"
+            >
+              <LogIn className="h-4 w-4" />
+              <span>Log In / Sign Up</span>
+            </button>
+          )}
+
         </div>
 
       </div>

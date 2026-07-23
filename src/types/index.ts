@@ -13,6 +13,12 @@ export interface UserProfile {
   preferredLocation: LocationPreference;
   bio: string;
   emailNotifications: boolean;
+  isOnboarded?: boolean;
+  createdAt?: string;
+}
+
+export interface UserAccount extends UserProfile {
+  passwordHash: string; // Stored securely in local user store
 }
 
 export interface Opportunity {

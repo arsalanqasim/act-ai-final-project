@@ -3,6 +3,7 @@ import { UserProfile, Opportunity, MatchResult, FilterState } from '../types';
 import { INITIAL_USER_PROFILE, INITIAL_OPPORTUNITIES } from '../services/mockData';
 import { evaluateMatchWithGemini } from '../services/geminiService';
 import { calculateLocalMatchScore } from '../services/fallbackService';
+import { useAuth } from './AuthContext';
 
 interface AppContextType {
   userProfile: UserProfile;
@@ -30,20 +31,19 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const LOCAL_PROFILE_KEY = 'opp_pulse_user_profile_v1';
-const LOCAL_SAVED_KEY = 'opp_pulse_saved_ids_v1';
-const LOCAL_API_KEY = 'opp_pulse_gemini_api_key_v1';
-const LOCAL_OPPS_KEY = 'opp_pulse_custom_opps_v1';
+const LOCAL_SAVED_KEY = 'opp_pulse_saved_ids_v2';
+const LOCAL_API_KEY = 'opp_pulse_gemini_api_key_v2';
+const LOCAL_OPPS_KEY = 'opp_pulse_custom_opps_v2';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Load initial profile from localStorage or fallback
-  const [userProfile, setUserProfileState] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem(LOCAL_PROFILE_KEY);
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
-    }
-    return INITIAL_USER_PROFILE;
-  });
+  const { currentUser, updateUserAccount } = useAuth();
+
+  // Profile derived from AuthContext or fallback
+  const userProfile = currentUser || INITIAL_USER_PROFILE;
+
+  const setUserProfile = (updatedProfile: UserProfile) => {
+    updateUserAccount(updatedProfile);
+  };
 
   // Load custom opportunities
   const [opportunities, setOpportunities] = useState<Opportunity[]>(() => {
@@ -89,12 +89,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Match Results State
   const [matchResults, setMatchResults] = useState<Record<string, MatchResult>>({});
   const [isLoadingMatches, setIsLoadingMatches] = useState(false);
-
-  // Save profile to localStorage
-  const setUserProfile = (profile: UserProfile) => {
-    setUserProfileState(profile);
-    localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(profile));
-  };
 
   // Add new opportunity from Ingestion Agent
   const addOpportunity = (opp: Opportunity) => {

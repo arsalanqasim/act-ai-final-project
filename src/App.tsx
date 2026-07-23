@@ -1,4 +1,5 @@
 import React from 'react';
+import { AuthProvider } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { HeroHeader } from './components/HeroHeader';
@@ -8,7 +9,9 @@ import { ProfileModal } from './components/ProfileModal';
 import { LinkIngesterModal } from './components/LinkIngesterModal';
 import { CopilotModal } from './components/CopilotModal';
 import { SettingsModal } from './components/SettingsModal';
-import { Zap, Github, ShieldCheck, Heart } from 'lucide-react';
+import { AuthModal } from './components/AuthModal';
+import { OnboardingWizard } from './components/OnboardingWizard';
+import { Zap, Github, Heart } from 'lucide-react';
 
 const AppContent: React.FC = () => {
   return (
@@ -28,11 +31,13 @@ const AppContent: React.FC = () => {
         <OpportunityFeed />
       </div>
 
-      {/* Modals */}
+      {/* Modals & Wizards */}
       <ProfileModal />
       <LinkIngesterModal />
       <CopilotModal />
       <SettingsModal />
+      <AuthModal />
+      <OnboardingWizard />
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 bg-slate-950 py-8 px-4 sm:px-6 mt-16">
@@ -71,9 +76,11 @@ const AppContent: React.FC = () => {
 
 export function App() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <AuthProvider>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </AuthProvider>
   );
 }
 
