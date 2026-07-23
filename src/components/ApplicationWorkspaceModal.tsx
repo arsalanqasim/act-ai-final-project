@@ -186,9 +186,13 @@ export const ApplicationWorkspaceModal: React.FC = () => {
     <div
       id="app-workspace-modal-overlay"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md overflow-y-auto"
+      role="presentation"
     >
       <div
         id="app-workspace-modal-container"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="application-workspace-title"
         className="glass-panel relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-slate-700/80 bg-[#0B0F19]/95 text-slate-100 shadow-2xl overflow-hidden my-8"
       >
         <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-900/60">
@@ -205,7 +209,7 @@ export const ApplicationWorkspaceModal: React.FC = () => {
                   {activeModalOpp.category}
                 </span>
               </div>
-              <h2 className="font-['Outfit'] text-xl font-bold text-white line-clamp-1">
+              <h2 id="application-workspace-title" className="font-['Outfit'] text-xl font-bold text-white line-clamp-1">
                 {activeModalOpp.title}
               </h2>
             </div>

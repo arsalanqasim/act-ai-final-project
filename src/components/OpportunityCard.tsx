@@ -1,6 +1,7 @@
 import React from 'react';
 import { Opportunity, MatchResult } from '../types';
 import { useApp } from '../context/AppContext';
+import { useApplications } from '../context/ApplicationContext';
 import { getDeadlineStatus } from '../utils/dateUtils';
 import { Calendar, MapPin, DollarSign, Bookmark, Sparkles, ExternalLink, Check, ShieldCheck, Globe, AlertCircle } from 'lucide-react';
 
@@ -11,6 +12,7 @@ interface OpportunityCardProps {
 
 export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, matchResult }) => {
   const { savedIds, toggleSaveOpportunity, setCopilotOpp } = useApp();
+  const { openWorkspaceModal } = useApplications();
   const isSaved = savedIds.includes(opportunity.id);
 
   const score = matchResult?.score ?? 75;
@@ -165,6 +167,14 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, m
 
       {/* Action Footer Buttons */}
       <div className="mt-5 border-t border-slate-800/80 pt-3 flex items-center gap-2">
+        <button
+          id={`btn-track-application-${opportunity.id}`}
+          onClick={() => openWorkspaceModal(opportunity)}
+          className="flex items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-2 text-xs font-semibold text-indigo-200 transition-colors hover:bg-indigo-500/20"
+          title="Track this application"
+        >
+          Track
+        </button>
         
         {/* Copilot Pitch Writer Button */}
         <button

@@ -1,6 +1,7 @@
 import React from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
+import { ApplicationProvider } from './context/ApplicationContext';
 import { Navbar } from './components/Navbar';
 import { HeroHeader } from './components/HeroHeader';
 import { StatsOverview } from './components/StatsOverview';
@@ -11,13 +12,17 @@ import { CopilotModal } from './components/CopilotModal';
 import { SettingsModal } from './components/SettingsModal';
 import { AuthModal } from './components/AuthModal';
 import { OnboardingWizard } from './components/OnboardingWizard';
+import { ApplicationWorkspaceModal } from './components/ApplicationWorkspaceModal';
+import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { Zap, Github, Heart } from 'lucide-react';
 
 const AppContent: React.FC = () => {
+  const isOnline = useNetworkStatus();
   return (
     <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
       
       <div>
+        {!isOnline && <div role="status" className="bg-amber-500 px-4 py-2 text-center text-xs font-semibold text-slate-950">You are offline. New changes will not sync until your connection returns.</div>}
         {/* Navigation Bar */}
         <Navbar />
 
@@ -78,7 +83,10 @@ export function App() {
   return (
     <AuthProvider>
       <AppProvider>
-        <AppContent />
+        <ApplicationProvider>
+          <AppContent />
+          <ApplicationWorkspaceModal />
+        </ApplicationProvider>
       </AppProvider>
     </AuthProvider>
   );

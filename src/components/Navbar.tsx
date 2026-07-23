@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { PlusCircle, User, Settings, Bookmark, Zap, LogIn, LogOut, ChevronDown, Shield, Cpu } from 'lucide-react';
+import { PlusCircle, User, Settings, Bookmark, Zap, LogIn, LogOut, ChevronDown, Shield, Cpu, Bell } from 'lucide-react';
+import { NotificationPreferencesModal } from './NotificationPreferencesModal';
 
 export const Navbar: React.FC = () => {
   const { 
@@ -22,6 +23,7 @@ export const Navbar: React.FC = () => {
   } = useAuth();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-slate-800 bg-[#0B0F19]/85 backdrop-blur-md">
@@ -89,6 +91,7 @@ export const Navbar: React.FC = () => {
           </button>
 
           {/* AI Settings / Engine Status */}
+          <button id="btn-notification-preferences" onClick={() => setIsNotificationsOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 text-slate-300 hover:text-white" title="Email alert preferences"><Bell className="h-4 w-4" /></button>
           <button
             id="btn-settings"
             onClick={() => setIsSettingsOpen(true)}
@@ -169,6 +172,7 @@ export const Navbar: React.FC = () => {
         </div>
 
       </div>
+      <NotificationPreferencesModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
     </header>
   );
 };
