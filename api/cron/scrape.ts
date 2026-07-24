@@ -23,8 +23,11 @@ const extractedOpportunitySchema = z.object({
   stipendOrPrize: z.string().min(1).max(200),
   techStackOrEligibility: z.array(z.string()).max(30),
   description: z.string().min(1).max(2000),
-  applyUrl: z.string().min(1).max(2048)
+  applyUrl: z.string().min(1).max(2048),
+  sourceUrl: z.string().min(1) // added to map back to original feed
 });
+
+const batchOpportunitySchema = z.array(extractedOpportunitySchema);
 
 interface FeedConfig {
   name: string;
@@ -42,6 +45,11 @@ const TARGET_FEEDS: FeedConfig[] = [
     name: 'GitHub Education & Community',
     url: 'https://github.blog/feed/',
     defaultCategory: 'Grant'
+  },
+  {
+    name: 'Devpost Hackathons',
+    url: 'https://devpost.com/hackathons.rss',
+    defaultCategory: 'Hackathon'
   }
 ];
 
@@ -75,12 +83,15 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     requestOptions: {
       rejectUnauthorized: false
     },
-    headers: { 'User-Agent': 'OpportunityPulse-AI-Scraper/1.0' }
+    headers: { 'User-Agent': 'OpportunityPulse-AI-Scraper/2.0' }
   });
 
   let totalProcessed = 0;
   let totalInserted = 0;
   let totalSkipped = 0;
+
+  // 1. Gather and pre-filter all items
+  const newItemsToProcess: any[] = [];
 
   for (const feed of TARGET_FEEDS) {
     try {
@@ -102,7 +113,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         const normalizedUrl: string = normalizeOpportunityUrl(validLink) || validLink;
         const contentHash: string = generateOpportunityContentHash(title, feed.name, validLink);
 
-        // Check if opportunity already exists in database by normalizedUrl or contentHash
+        // Check if opportunity already exists in database
         const { data: existing } = await adminClient
           .from('custom_opportunities')
           .select('id')
@@ -114,139 +125,171 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
           continue;
         }
 
-        // If Gemini API key is available, attempt AI structured extraction
-        let extractedData: z.infer<typeof extractedOpportunitySchema> | null = null;
-        let extractionEngine = 'Local Feed Extractor';
-
-        if (geminiApiKey) {
-          try {
-            const ai = new GoogleGenAI({ apiKey: geminiApiKey });
-            const prompt = `You are the Ingestion Agent for OpportunityPulse AI.
-Extract structured JSON from this feed item:
-Title: ${title}
-URL: ${validLink}
-Content: ${rawContent.slice(0, 3000)}
-
-Return ONLY a single valid JSON object with fields:
-- title: string
-- organization: string
-- category: one of ["Hackathon", "Scholarship", "Internship", "Grant", "Tech Event"]
-- deadline: YYYY-MM-DD or descriptive deadline
-- location: e.g. "Remote", "Global", "Pakistan"
-- stipendOrPrize: string
-- techStackOrEligibility: array of strings
-- description: string summary
-- applyUrl: valid URL`;
-
-            // Add 1-second delay between item requests to stay under 15 RPM free tier limit
-            await new Promise(r => setTimeout(r, 1000));
-
-            let response;
-            try {
-              response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: prompt,
-                config: { responseMimeType: 'application/json' }
-              });
-            } catch {
-              // Automatic secondary fallback to gemini-flash-lite-latest
-              response = await ai.models.generateContent({
-                model: 'gemini-flash-lite-latest',
-                contents: prompt,
-                config: { responseMimeType: 'application/json' }
-              });
-            }
-
-            const rawText = response.text || '';
-            const jsonValue = JSON.parse(rawText);
-            const parsed = extractedOpportunitySchema.safeParse(jsonValue);
-            if (parsed.success) {
-              extractedData = parsed.data;
-              extractionEngine = 'Gemini 1.5 Flash Feed Agent';
-            }
-          } catch (aiErr: unknown) {
-            const msg = aiErr instanceof Error ? aiErr.message : String(aiErr);
-            if (msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota')) {
-              console.warn(`[AI Engine Rate Limit] Quota limit reached for item "${title}". Switching to local heuristic fallback.`);
-            } else {
-              console.warn(`[AI Engine Warning] Fallback for item "${title}":`, msg.slice(0, 150));
-            }
-          }
-        }
-
-        // Fallback to local heuristic extraction if AI is unavailable or failed
-        if (!extractedData) {
-          extractedData = {
-            title: title.slice(0, 200),
-            organization: feed.name,
-            category: feed.defaultCategory,
-            deadline: 'See Source Link',
-            location: 'Remote',
-            stipendOrPrize: 'Check Listing',
-            techStackOrEligibility: ['General Tech', 'Students & Youth'],
-            description: rawContent.slice(0, 500),
-            applyUrl: validLink
-          };
-        }
-
-        // Calculate trust score & provenance
-        const matchedSource = findApprovedSource(validLink);
-        const sourceDomain = matchedSource ? matchedSource.domain : new URL(validLink).hostname.replace(/^www\./, '');
-        const trustEvaluation = calculateTrustScore({
-          title: extractedData.title,
-          organization: extractedData.organization,
-          description: extractedData.description,
-          techStackOrEligibility: extractedData.techStackOrEligibility,
-          sourceUrl: validLink,
-          applyUrl: extractedData.applyUrl,
-          sourceType: 'official'
+        newItemsToProcess.push({
+          feedName: feed.name,
+          defaultCategory: feed.defaultCategory,
+          title,
+          validLink,
+          normalizedUrl,
+          contentHash,
+          rawContent: rawContent.slice(0, 2000)
         });
-
-        const opportunityId = `opp_scrape_${crypto.randomUUID()}`;
-
-        // Insert payload
-        const insertPayload: Record<string, unknown> = {
-          id: opportunityId,
-          title: extractedData.title,
-          organization: extractedData.organization,
-          category: extractedData.category,
-          deadline: extractedData.deadline,
-          location: extractedData.location,
-          stipend_or_prize: extractedData.stipendOrPrize,
-          tech_stack_or_eligibility: extractedData.techStackOrEligibility,
-          description: extractedData.description,
-          apply_url: extractedData.applyUrl,
-          featured: false,
-          posted_date: new Date().toISOString().split('T')[0],
-          source_url: validLink,
-          normalized_url: normalizedUrl,
-          source_domain: sourceDomain,
-          source_type: trustEvaluation.sourceType,
-          trust_tier: trustEvaluation.trustTier,
-          trust_score: trustEvaluation.score,
-          verification_state: trustEvaluation.verificationState,
-          extraction_engine: extractionEngine,
-          extraction_confidence: 85,
-          content_hash: contentHash
-        };
-
-        if (systemUserId) {
-          insertPayload.user_id = systemUserId;
-        }
-
-        // Insert into Supabase
-        const { error: insertErr } = await adminClient
-          .from('custom_opportunities')
-          .insert(insertPayload);
-
-        if (!insertErr) {
-          totalInserted++;
-        } else {
-          console.warn(`[Supabase Insert Warning] Could not insert item "${title}":`, insertErr.message);
-        }
       }
     } catch (feedErr) {
       console.warn(`Failed to process RSS feed ${feed.name}:`, feedErr instanceof Error ? feedErr.message : feedErr);
+    }
+  }
+
+  if (newItemsToProcess.length === 0) {
+    return sendJson(res, 200, {
+      success: true,
+      data: { processed: totalProcessed, inserted: 0, skipped: totalSkipped, message: 'No new items to process.' }
+    });
+  }
+
+  // 2. Batch AI Semantic Deduplication & Extraction
+  let extractedOpportunities: z.infer<typeof batchOpportunitySchema> = [];
+  let extractionEngine = 'Local Feed Extractor (Fallback)';
+
+  if (geminiApiKey) {
+    try {
+      const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+      
+      const payloadString = newItemsToProcess.map((item, idx) => `
+--- ITEM ${idx + 1} ---
+Source Feed: ${item.feedName}
+Title: ${item.title}
+URL: ${item.validLink}
+Content: ${item.rawContent}
+      `).join('\n');
+
+      const prompt = `You are the Ingestion & Deduplication Agent for OpportunityPulse AI.
+I am providing you with a list of recently scraped items from various RSS feeds.
+Your job is to:
+1. Analyze all items and group semantic duplicates (e.g., if two items from different sources describe the exact same hackathon or scholarship, merge them into one output item).
+2. Extract the structured details for each unique opportunity.
+3. Return ONLY a single, valid JSON array containing the unique objects. Do NOT wrap the JSON in markdown blocks (no \`\`\`json).
+
+Output Array Item Schema:
+- title: string
+- organization: string
+- category: one of ["Hackathon", "Scholarship", "Internship", "Grant", "Tech Event"]
+- deadline: string (YYYY-MM-DD or a descriptive deadline)
+- location: string (e.g. "Remote", "Global", "Pakistan", "New York")
+- stipendOrPrize: string
+- techStackOrEligibility: array of strings
+- description: string summary
+- applyUrl: string (the valid URL to apply/read more)
+- sourceUrl: string (the original URL of the feed item you used to extract this)
+
+Scraped Items:
+${payloadString}`;
+
+      let response;
+      try {
+        response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+          config: { responseMimeType: 'application/json' }
+        });
+      } catch (err: unknown) {
+        console.warn(`[AI Engine] Primary model failed, attempting fallback:`, err);
+        response = await ai.models.generateContent({
+          model: 'gemini-flash-lite-latest',
+          contents: prompt,
+          config: { responseMimeType: 'application/json' }
+        });
+      }
+
+      const rawText = (response.text || '').replace(/^```json\s*/, '').replace(/```\s*$/, '').trim();
+      const jsonValue = JSON.parse(rawText);
+      const parsed = batchOpportunitySchema.safeParse(jsonValue);
+      
+      if (parsed.success) {
+        extractedOpportunities = parsed.data;
+        extractionEngine = 'Gemini 2.5 Flash Batch Agent';
+      } else {
+        console.warn('[AI Engine] Failed to parse output into schema:', parsed.error);
+      }
+    } catch (aiErr: unknown) {
+      console.warn(`[AI Engine Warning] Batch extraction failed:`, aiErr instanceof Error ? aiErr.message : String(aiErr));
+    }
+  }
+
+  // 3. Fallback Mapping (if AI completely fails)
+  if (extractedOpportunities.length === 0) {
+    extractedOpportunities = newItemsToProcess.map(item => ({
+      title: item.title.slice(0, 200),
+      organization: item.feedName,
+      category: item.defaultCategory,
+      deadline: 'See Source Link',
+      location: 'Remote',
+      stipendOrPrize: 'Check Listing',
+      techStackOrEligibility: ['General Tech', 'Students & Youth'],
+      description: item.rawContent.slice(0, 500),
+      applyUrl: item.validLink,
+      sourceUrl: item.validLink
+    }));
+  }
+
+  // 4. Insert into Supabase
+  for (const extractedData of extractedOpportunities) {
+    // Find the original raw item to get normalizedUrl and contentHash
+    const originalItem = newItemsToProcess.find(item => item.validLink === extractedData.sourceUrl) 
+                      || newItemsToProcess[0];
+
+    const matchedSource = findApprovedSource(originalItem.validLink);
+    const sourceDomain = matchedSource ? matchedSource.domain : new URL(originalItem.validLink).hostname.replace(/^www\./, '');
+    
+    const trustEvaluation = calculateTrustScore({
+      title: extractedData.title,
+      organization: extractedData.organization,
+      description: extractedData.description,
+      techStackOrEligibility: extractedData.techStackOrEligibility,
+      sourceUrl: originalItem.validLink,
+      applyUrl: extractedData.applyUrl,
+      sourceType: 'official'
+    });
+
+    const opportunityId = `opp_scrape_${crypto.randomUUID()}`;
+
+    const insertPayload: Record<string, unknown> = {
+      id: opportunityId,
+      title: extractedData.title,
+      organization: extractedData.organization,
+      category: extractedData.category,
+      deadline: extractedData.deadline,
+      location: extractedData.location,
+      stipend_or_prize: extractedData.stipendOrPrize,
+      tech_stack_or_eligibility: extractedData.techStackOrEligibility,
+      description: extractedData.description,
+      apply_url: extractedData.applyUrl,
+      featured: false,
+      posted_date: new Date().toISOString().split('T')[0],
+      source_url: originalItem.validLink,
+      normalized_url: originalItem.normalizedUrl,
+      source_domain: sourceDomain,
+      source_type: trustEvaluation.sourceType,
+      trust_tier: trustEvaluation.trustTier,
+      trust_score: trustEvaluation.score,
+      verification_state: trustEvaluation.verificationState,
+      extraction_engine: extractionEngine,
+      extraction_confidence: 85,
+      content_hash: originalItem.contentHash
+    };
+
+    if (systemUserId) {
+      insertPayload.user_id = systemUserId;
+    }
+
+    const { error: insertErr } = await adminClient
+      .from('custom_opportunities')
+      .insert(insertPayload);
+
+    if (!insertErr) {
+      totalInserted++;
+    } else {
+      console.warn(`[Supabase Insert Warning] Could not insert item "${extractedData.title}":`, insertErr.message);
     }
   }
 
