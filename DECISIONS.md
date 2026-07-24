@@ -48,7 +48,7 @@ HEC graders will evaluate the deployed Vercel link. Graders might not enter thei
 
 ### Decision
 Implement a **Dual Execution Engine**:
-- **Primary Engine**: Google Gemini API (`gemini-1.5-flash` / `gemini-2.0-flash`) via AI Studio SDK.
+- **Primary Engine**: Google Gemini API (`gemini-2.5-flash` / `gemini-2.5-flash-lite`) via AI Studio SDK.
 - **Fallback Engine**: Local client-side Jaccard/TF-IDF skill matching heuristics + algorithmic proposal template builder.
 
 ### Consequences
