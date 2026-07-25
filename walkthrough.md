@@ -7,7 +7,7 @@ Phase 0 of **OpportunityPulse AI** has been successfully implemented on dedicate
 ## 🔒 1. Completed Hardening & Security Changes
 
 - **Removed `@google/generative-ai`**: Package purged from `package.json` dependencies and `node_modules`.
-- **Zero API Key Leakage**: Removed all browser-prefixed provider-key references from source files, environment configs, and context types.
+- **Zero API Key Leakage**: Removed all occurrences of `VITE_GEMINI_API_KEY` from source files, environment configs (`.env`, `.env.example`), and context types.
 - **LocalStorage Migration**: Added an automatic one-time migration in `AppContext.tsx` clearing legacy `opp_pulse_gemini_api_key_v2` keys from user browsers.
 - **Pure Local Heuristic Execution**: Refactored `geminiService.ts` and `fallbackService.ts` so all opportunity matching, unstructured text ingestion, resume extraction, and proposal drafting execute deterministically in the client browser without external network dependencies.
 
@@ -37,6 +37,6 @@ Phase 0 of **OpportunityPulse AI** has been successfully implemented on dedicate
 | :--- | :--- | :--- |
 | `npm run lint` | **PASSED** | 0 errors, 0 warnings |
 | `npm run build` | **PASSED** | Built production bundle in 2.11s |
-| Browser provider-key reference scan | **PASSED** | 0 runtime occurrences |
+| `rg VITE_GEMINI_API_KEY` | **PASSED** | 0 runtime occurrences |
 | `rg GoogleGenerativeAI` | **PASSED** | 0 occurrences across repository |
 | `@google/generative-ai` | **PASSED** | Removed from package.json |

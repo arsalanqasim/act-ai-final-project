@@ -2,8 +2,7 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 import { OpportunityCard } from './OpportunityCard';
 import { OpportunityCategory, FilterState } from '../types';
-import { Search, Sparkles, Layers, Archive } from 'lucide-react';
-import { getDeadlineStatus } from '../utils/dateUtils';
+import { Search, Sparkles, Layers } from 'lucide-react';
 
 export const OpportunityFeed: React.FC = () => {
   const { opportunities, filters, setFilters, matchResults, isLoadingMatches } = useApp();
@@ -42,7 +41,7 @@ export const OpportunityFeed: React.FC = () => {
       if (filters.location === 'Global' && !loc.includes('global')) return false;
     }
 
-    // Min Score filter (Dynamic personalized feed)
+    // Min Score filter
     const score = matchResults[opp.id]?.score ?? 75;
     if (score < filters.minScore) return false;
 
@@ -64,10 +63,6 @@ export const OpportunityFeed: React.FC = () => {
     }
     return 0;
   });
-
-  // Separate Active and Expired Opportunities
-  const activeOpps = sortedOpportunities.filter(opp => !getDeadlineStatus(opp.deadline).isExpired);
-  const expiredOpps = sortedOpportunities.filter(opp => getDeadlineStatus(opp.deadline).isExpired);
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -153,9 +148,9 @@ export const OpportunityFeed: React.FC = () => {
       <div className="mt-6 flex items-center justify-between">
         <h2 className="font-['Outfit'] text-xl font-bold text-white flex items-center gap-2">
           <Layers className="h-5 w-5 text-cyan-400" />
-          <span>Active Opportunities</span>
+          <span>Matched Opportunities</span>
           <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-400">
-            {activeOpps.length}
+            {sortedOpportunities.length}
           </span>
         </h2>
 
@@ -166,10 +161,10 @@ export const OpportunityFeed: React.FC = () => {
         )}
       </div>
 
-      {/* Grid Cards Container - Active */}
-      {activeOpps.length > 0 ? (
+      {/* Grid Cards Container */}
+      {sortedOpportunities.length > 0 ? (
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {activeOpps.map((opp) => (
+          {sortedOpportunities.map((opp) => (
             <OpportunityCard
               key={opp.id}
               opportunity={opp}
@@ -180,7 +175,7 @@ export const OpportunityFeed: React.FC = () => {
       ) : (
         <div className="mt-12 text-center py-16 glass-panel rounded-3xl border border-slate-800">
           <Sparkles className="mx-auto h-10 w-10 text-slate-500" />
-          <h3 className="mt-3 text-lg font-bold text-slate-200">No active opportunities match your filters</h3>
+          <h3 className="mt-3 text-lg font-bold text-slate-200">No opportunities match your filters</h3>
           <p className="mt-1 text-xs text-slate-400 max-w-md mx-auto">
             Try adjusting your search query, selecting "All" categories, or clicking "Ingest Link" to add a new opportunity!
           </p>
@@ -190,31 +185,6 @@ export const OpportunityFeed: React.FC = () => {
           >
             Reset All Filters
           </button>
-        </div>
-      )}
-
-      {/* Expired Opportunities Section */}
-      {expiredOpps.length > 0 && (
-        <div className="mt-16 border-t border-slate-800/50 pt-8">
-          <div className="flex items-center gap-2 opacity-60 mb-6">
-            <Archive className="h-5 w-5 text-slate-400" />
-            <h2 className="font-['Outfit'] text-lg font-bold text-slate-300">
-              Past / Expired Opportunities
-            </h2>
-            <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-500">
-              {expiredOpps.length}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 opacity-60 hover:opacity-100 transition-opacity duration-300">
-            {expiredOpps.map((opp) => (
-              <OpportunityCard
-                key={opp.id}
-                opportunity={opp}
-                matchResult={matchResults[opp.id]}
-              />
-            ))}
-          </div>
         </div>
       )}
 
