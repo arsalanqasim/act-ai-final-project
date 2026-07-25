@@ -25,12 +25,14 @@ export type WhatsAppProcessResult =
   | { status: 'skipped'; reason: string }
   | { status: 'ignored'; reason: string };
 
-const OPPORTUNITY_SIGNAL_PATTERN = /\b(hackathon|scholarship|internship|fellowship|grant|residency|bootcamp|competition|challenge|deadline|apply|funding|prize|call for applications?)\b/i;
+const OPPORTUNITY_SIGNAL_PATTERN = /\b(opportunity|hackathon|scholarship|internship|fellowship|grant|residency|bootcamp|competition|challenge|deadline|apply|funding|prize|call for applications?)\b/i;
 const URL_PATTERN = /https?:\/\/[^\s<>"']+/i;
 
 export function isLikelyOpportunityText(rawText: string): boolean {
   const text = rawText.trim();
-  return text.length >= 20 && OPPORTUNITY_SIGNAL_PATTERN.test(text) && URL_PATTERN.test(text);
+  // WhatsApp messages often put the URL on a separate line or omit words
+  // like "deadline" even when they contain a genuine opportunity.
+  return text.length >= 20 && (OPPORTUNITY_SIGNAL_PATTERN.test(text) || URL_PATTERN.test(text));
 }
 
 export function isQuotaExceededError(error: unknown): boolean {
