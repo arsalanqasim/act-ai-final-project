@@ -22,6 +22,12 @@ CREATE INDEX IF NOT EXISTS whatsapp_ingestion_queue_created_idx
 
 ALTER TABLE public.whatsapp_ingestion_queue ENABLE ROW LEVEL SECURITY;
 
+-- The webhook and queue cron use the server-side Supabase service role.
+-- Explicit grants are required when this table is created through a custom
+-- migration rather than the Supabase dashboard table editor.
+GRANT USAGE ON SCHEMA public TO service_role;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.whatsapp_ingestion_queue TO service_role;
+
 CREATE OR REPLACE FUNCTION public.update_whatsapp_ingestion_queue_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
