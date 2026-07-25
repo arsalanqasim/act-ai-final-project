@@ -117,18 +117,20 @@ export default async function handler(req: WebhookRequest, res: ServerResponse) 
 
   const rawBody = await getRawBody(req);
   const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET || process.env.OPENWA_WEBHOOK_SECRET || process.env.CRON_SECRET;
+  const allowUnsignedOpenWA = process.env.ALLOW_UNSIGNED_OPENWA_WEBHOOKS === 'true';
   const authHeader = getHeader(req, 'authorization') || '';
   const bearerToken = authHeader.replace(/^Bearer\s+/i, '').trim();
   const signature = getHeader(req, 'x-openwa-signature');
-  const isAuthorized = Boolean(webhookSecret) && (
-    bearerToken === webhookSecret || hasValidOpenWASignature(rawBody, signature, webhookSecret as string)
-  );
+  const hasValidBearer = Boolean(webhookSecret && bearerToken === webhookSecret);
+  const hasValidSignature = Boolean(webhookSecret && hasValidOpenWASignature(rawBody, signature, webhookSecret));
 
-  if (!webhookSecret) {
+  if (!webhookSecret && !allowUnsignedOpenWA) {
     return sendJson(res, 503, { success: false, error: 'Webhook secret is not configured on the server.' });
   }
 
-  if (!isAuthorized) {
+  // Never accept a supplied but invalid signature. Unsigned requests are only
+  // allowed when explicitly enabled for dashboard-created OpenWA webhooks.
+  if ((signature && !hasValidSignature && !hasValidBearer) || (!signature && !hasValidBearer && !allowUnsignedOpenWA)) {
     return sendJson(res, 401, { success: false, error: 'Unauthorized webhook request.' });
   }
 
