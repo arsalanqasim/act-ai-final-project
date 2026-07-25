@@ -260,7 +260,7 @@ ${rawText.slice(0, 3000)}`;
       source_url: 'WhatsApp Community',
       normalized_url: normalizedUrl,
       source_domain: sourceDomain,
-      source_type: trustEvaluation.sourceType === 'official' ? 'official' : 'tier-3-community',
+      source_type: trustEvaluation.sourceType,
       trust_tier: trustEvaluation.trustTier,
       trust_score: trustEvaluation.score,
       verification_state: trustEvaluation.verificationState,
