@@ -1,6 +1,6 @@
 # implementation_plan.md — OpportunityPulse AI Execution Plan
 
-Build an end-to-end, zero-cost Agentic Opportunity Radar & Application Copilot app (**OpportunityPulse AI**) for Pakistani university students and tech youth for the **HEC ACT-AI Capstone Project**.
+Build an end-to-end, zero-cost Agentic Opportunity Radar & Application Copilot app (**OpportunityPulse AI**) for Pakistani university students and tech youth.
 
 ---
 
@@ -38,7 +38,7 @@ Build an end-to-end, zero-cost Agentic Opportunity Radar & Application Copilot a
 ### Phase 5: Verification & Capstone README Report
 - Verify all interactive user flows end-to-end.
 - Ensure fallback engine works when no API key is set.
-- Prepare comprehensive `README.md` meeting all HEC ACT-AI rubric requirements.
+- Prepare comprehensive `README.md` meeting all documentation and system description requirements.
 
 ---
 

@@ -188,7 +188,7 @@ export const ApplicationWorkspaceModal: React.FC = () => {
   return (
     <div
       id="app-workspace-modal-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-md overflow-y-auto"
       role="presentation"
     >
       <div
@@ -197,23 +197,23 @@ export const ApplicationWorkspaceModal: React.FC = () => {
         aria-modal="true"
         aria-labelledby="application-workspace-title"
         ref={dialogRef}
-        className="glass-panel relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-slate-700/80 bg-[#0B0F19]/95 text-slate-100 shadow-2xl overflow-hidden my-8"
+        className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl overflow-hidden my-8"
       >
-        <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-900/60">
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-slate-50">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 border border-cyan-500/30 text-cyan-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-50 to-indigo-50 border border-cyan-200 text-cyan-700">
               <Briefcase className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                <span className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
                   Application Workspace
                 </span>
-                <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300">
+                <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-700">
                   {activeModalOpp.category}
                 </span>
               </div>
-              <h2 id="application-workspace-title" className="font-['Outfit'] text-xl font-bold text-white line-clamp-1">
+              <h2 id="application-workspace-title" className="font-['Outfit'] text-xl font-bold text-slate-900 line-clamp-1">
                 {activeModalOpp.title}
               </h2>
             </div>
@@ -222,7 +222,7 @@ export const ApplicationWorkspaceModal: React.FC = () => {
           <button
             id="btn-close-app-workspace"
             onClick={closeWorkspaceModal}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-white transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
             title="Close workspace"
           >
             <X className="h-4 w-4" />
@@ -253,19 +253,19 @@ export const ApplicationWorkspaceModal: React.FC = () => {
             </div>
           )}
 
-          <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-slate-200">{activeModalOpp.organization}</p>
-              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+              <p className="text-sm font-semibold text-slate-900">{activeModalOpp.organization}</p>
+              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600">
                 <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5 text-cyan-400" />
-                  Deadline: <strong className={deadlineAnalysis.isExpired ? 'text-red-400' : 'text-slate-200'}>{deadlineAnalysis.formattedDate}</strong>
+                  <Calendar className="h-3.5 w-3.5 text-cyan-600" />
+                  Deadline: <strong className={deadlineAnalysis.isExpired ? 'text-red-600' : 'text-slate-900'}>{deadlineAnalysis.formattedDate}</strong>
                 </span>
                 <span className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5 text-indigo-400" />
+                  <MapPin className="h-3.5 w-3.5 text-indigo-600" />
                   {activeModalOpp.location}
                 </span>
-                <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                <span className="flex items-center gap-1 text-emerald-600 font-medium">
                   <DollarSign className="h-3.5 w-3.5" />
                   {activeModalOpp.stipendOrPrize}
                 </span>
@@ -275,10 +275,10 @@ export const ApplicationWorkspaceModal: React.FC = () => {
             <div className="flex items-center gap-2 shrink-0">
               <span className={`rounded-lg px-2.5 py-1 text-xs font-bold border ${
                 deadlineAnalysis.isExpired
-                  ? 'bg-red-500/10 text-red-400 border-red-500/30'
+                  ? 'bg-red-50 text-red-700 border-red-200'
                   : deadlineAnalysis.status === 'Closing soon'
-                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
               }`}>
                 {deadlineAnalysis.status}
               </span>
@@ -288,7 +288,7 @@ export const ApplicationWorkspaceModal: React.FC = () => {
                 href={activeModalOpp.applyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 text-xs font-semibold transition-colors"
+                className="flex items-center gap-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-3 py-1.5 text-xs font-semibold transition-colors"
               >
                 <span>Apply Portal</span>
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -298,8 +298,8 @@ export const ApplicationWorkspaceModal: React.FC = () => {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-cyan-400" />
+              <label className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                <Clock className="h-4 w-4 text-cyan-600" />
                 <span>Application Lifecycle Status</span>
               </label>
               <span className={`rounded-lg border px-2.5 py-0.5 text-xs font-semibold ${STATUS_CONFIGS[status].badgeStyle}`}>
@@ -318,20 +318,20 @@ export const ApplicationWorkspaceModal: React.FC = () => {
                     onClick={() => handleStatusChange(st)}
                     className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
                       isActive
-                        ? 'border-cyan-500 bg-cyan-500/20 text-cyan-300 font-bold shadow-lg shadow-cyan-500/10'
-                        : 'border-slate-800 bg-slate-900/40 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                        ? 'border-cyan-500 bg-cyan-50 text-cyan-700 shadow-cyan-100'
+                        : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-900'
                     }`}
                     title={cfg.description}
                   >
-                    <span className="text-[10px] font-mono text-slate-500 mb-0.5">Step {cfg.stepNumber}</span>
+                    <span className="text-[10px] font-mono text-slate-400 mb-0.5">Step {cfg.stepNumber}</span>
                     <span className="text-xs font-semibold truncate w-full">{cfg.shortLabel}</span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="flex items-start gap-2 rounded-xl bg-slate-900/60 border border-slate-800 p-3 text-xs text-slate-400">
-              <Info className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600">
+              <Info className="h-4 w-4 text-cyan-600 shrink-0 mt-0.5" />
               <span>
                 <strong>Note:</strong> Marking an application as <em>Submitted</em> tracks your personal career progress within OpportunityPulse AI. It does <strong>not</strong> automate external website form submissions.
               </span>
@@ -340,8 +340,8 @@ export const ApplicationWorkspaceModal: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-2 flex flex-col">
-              <label htmlFor="app-notes-textarea" className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                <FileText className="h-4 w-4 text-indigo-400" />
+              <label htmlFor="app-notes-textarea" className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                <FileText className="h-4 w-4 text-indigo-600" />
                 <span>Application Notes & Pitch Draft</span>
               </label>
               <textarea
@@ -350,13 +350,13 @@ export const ApplicationWorkspaceModal: React.FC = () => {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Paste key response requirements, interviewer contact details, customized pitch ideas, or follow-up notes here..."
                 rows={7}
-                className="w-full flex-1 rounded-xl border border-slate-800 bg-slate-900/60 p-3.5 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                className="w-full flex-1 rounded-xl border border-slate-200 bg-white p-3.5 text-xs text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
               />
             </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="app-next-action-input" className="text-xs font-semibold text-slate-300">
+                <label htmlFor="app-next-action-input" className="text-xs font-semibold text-slate-700">
                   Next Action Task
                 </label>
                 <input
@@ -365,12 +365,12 @@ export const ApplicationWorkspaceModal: React.FC = () => {
                   value={nextAction}
                   onChange={(e) => setNextAction(e.target.value)}
                   placeholder="e.g. Follow up on portal status / Send recommendations"
-                  className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="app-next-action-date" className="text-xs font-semibold text-slate-300">
+                <label htmlFor="app-next-action-date" className="text-xs font-semibold text-slate-700">
                   Next Action Due Date
                 </label>
                 <input
@@ -378,12 +378,12 @@ export const ApplicationWorkspaceModal: React.FC = () => {
                   type="date"
                   value={nextActionAt}
                   onChange={(e) => setNextActionAt(e.target.value)}
-                  className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3.5 py-2 text-xs text-slate-200 focus:border-cyan-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="app-submitted-at-date" className="text-xs font-semibold text-slate-300">
+                <label htmlFor="app-submitted-at-date" className="text-xs font-semibold text-slate-700">
                   User Submission Date
                 </label>
                 <input
@@ -391,25 +391,25 @@ export const ApplicationWorkspaceModal: React.FC = () => {
                   type="date"
                   value={submittedAt}
                   onChange={(e) => setSubmittedAt(e.target.value)}
-                  className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3.5 py-2 text-xs text-slate-200 focus:border-cyan-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
-          <div className="space-y-3 border-t border-slate-800/80 pt-6">
+          <div className="space-y-3 border-t border-slate-200 pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                  <CheckSquare className="h-4 w-4 text-emerald-400" />
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                  <CheckSquare className="h-4 w-4 text-emerald-600" />
                   <span>Application Preparation Checklist</span>
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   {completedChecklistCount} of {checklist.length} tasks completed ({checklistProgressPercent}%)
                 </p>
               </div>
 
-              <div className="w-32 h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div className="w-32 h-2 rounded-full bg-slate-200 overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 transition-all duration-300"
                   style={{ width: `${checklistProgressPercent}%` }}
@@ -421,17 +421,17 @@ export const ApplicationWorkspaceModal: React.FC = () => {
               {checklist.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-800/80 bg-slate-900/40 p-2.5 transition-colors hover:border-slate-700"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-2.5 transition-colors hover:border-slate-300"
                 >
                   <button
                     id={`app-checklist-item-${item.id}`}
                     onClick={() => toggleChecklistItem(item.id)}
-                    className="flex items-center gap-2.5 text-xs text-slate-200 hover:text-white text-left flex-1"
+                    className="flex items-center gap-2.5 text-xs text-slate-700 hover:text-slate-900 text-left flex-1"
                   >
                     {item.completed ? (
-                      <CheckSquare className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <CheckSquare className="h-4 w-4 text-emerald-600 shrink-0" />
                     ) : (
-                      <Square className="h-4 w-4 text-slate-500 shrink-0" />
+                      <Square className="h-4 w-4 text-slate-400 shrink-0" />
                     )}
                     <span className={item.completed ? 'line-through text-slate-500' : ''}>
                       {item.label}
@@ -441,7 +441,7 @@ export const ApplicationWorkspaceModal: React.FC = () => {
                   <button
                     id={`app-btn-remove-checklist-${item.id}`}
                     onClick={() => removeChecklistItem(item.id)}
-                    className="text-slate-500 hover:text-red-400 p-1 transition-colors"
+                    className="text-slate-400 hover:text-red-600 p-1 transition-colors"
                     title="Remove item"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -458,12 +458,12 @@ export const ApplicationWorkspaceModal: React.FC = () => {
                 onChange={(e) => setNewChecklistItem(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addChecklistItem()}
                 placeholder="Add custom preparation task..."
-                className="flex-1 rounded-xl border border-slate-800 bg-slate-900/60 px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+                className="flex-1 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:outline-none"
               />
               <button
                 id="app-btn-add-checklist"
                 onClick={addChecklistItem}
-                className="flex items-center gap-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 text-xs font-semibold transition-colors"
+                className="flex items-center gap-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 px-3 py-2 text-xs font-semibold transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" /> Add Task
               </button>
@@ -471,7 +471,7 @@ export const ApplicationWorkspaceModal: React.FC = () => {
           </div>
         </div>
 
-        <div className="border-t border-slate-800 px-6 py-4 bg-slate-900/80 flex flex-wrap items-center justify-between gap-3">
+        <div className="border-t border-slate-200 px-6 py-4 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             {currentApp && (
               <>
@@ -479,7 +479,7 @@ export const ApplicationWorkspaceModal: React.FC = () => {
                   id="app-btn-archive"
                   onClick={handleArchive}
                   disabled={isSubmitting || status === 'archived'}
-                  className="flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs font-semibold text-slate-400 hover:border-slate-700 hover:text-white transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:border-slate-300 hover:text-slate-900 transition-colors disabled:opacity-50"
                 >
                   <Archive className="h-3.5 w-3.5" />
                   <span>Archive</span>
@@ -489,7 +489,7 @@ export const ApplicationWorkspaceModal: React.FC = () => {
                   id="app-btn-delete"
                   onClick={handleDelete}
                   disabled={isSubmitting}
-                  className="flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   <span>Delete Record</span>
@@ -502,7 +502,7 @@ export const ApplicationWorkspaceModal: React.FC = () => {
             <button
               id="app-btn-cancel"
               onClick={closeWorkspaceModal}
-              className="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
             >
               Cancel
             </button>

@@ -147,12 +147,12 @@ export const NotificationHistoryPanel: React.FC = () => {
           <div
             key={delivery.id}
             id={`notification-delivery-${delivery.id}`}
-            className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900/40 p-3 transition-colors hover:border-slate-700"
+            className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 transition-colors hover:border-slate-300 shadow-sm"
           >
             <span className={`mt-0.5 shrink-0 ${cfg.color}`}>{cfg.icon}</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-200 truncate">
+                <p className="text-xs font-semibold text-slate-900 truncate">
                   Opportunity: <span className="font-mono text-slate-400">{delivery.opportunity_id}</span>
                 </p>
                 <span

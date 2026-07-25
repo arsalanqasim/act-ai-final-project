@@ -45,7 +45,7 @@ As a result:
 
 ---
 
-## 4. Success Metrics for HEC ACT-AI Evaluation
+## 4. Success Metrics & Evaluation
 1. **Originality**: Addresses a verified real-world problem for university youth.
 2. **Completion**: 100% functional, responsive UI without stub features.
 3. **Deployment**: Deployed live on Vercel with a working public URL.

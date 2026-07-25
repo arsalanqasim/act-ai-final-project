@@ -1,7 +1,7 @@
 # AGENTS.md — Agentic AI Coding & Architecture Conventions
 
 ## 1. Project Context & Purpose
-**OpportunityPulse AI** is an Agentic AI-powered Opportunity Radar & Career Growth Platform built for the **HEC ACT-AI Capstone Project**. It helps university students, fresh graduates, and tech youth cut through social media noise to discover, match, and apply for high-signal opportunities (AI Hackathons, International Scholarships, Remote Internships, and Tech Grants).
+**OpportunityPulse AI** is an Agentic AI-powered Opportunity Radar & Career Growth Platform. It helps university students, fresh graduates, and tech youth cut through social media noise to discover, match, and apply for high-signal opportunities (AI Hackathons, International Scholarships, Remote Internships, and Tech Grants).
 
 ---
 
@@ -88,7 +88,7 @@ act-ai-final-project/
 ├── CONTEXT.md               # Product Requirements Document (PRD)
 ├── DECISIONS.md             # Architectural Decision Records (ADRs)
 ├── implementation_plan.md   # Step-by-step build & verification roadmap
-├── README.md                # HEC ACT-AI Capstone Project Report
+├── README.md                # Project Capstone Report
 ├── index.html
 ├── package.json
 ├── vite.config.ts

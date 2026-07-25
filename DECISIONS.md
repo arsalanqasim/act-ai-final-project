@@ -44,7 +44,7 @@ Use **React 18** bundled with **Vite** and styled using **Tailwind CSS** and **L
 Accepted
 
 ### Context
-HEC graders will evaluate the deployed Vercel link. Graders might not enter their own API key. Relying strictly on a paid or mandatory API key creates failure risk if API keys expire or rate limits are reached.
+Graders and visitors will evaluate the deployed Vercel link. Graders might not enter their own API key. Relying strictly on a paid or mandatory API key creates failure risk if API keys expire or rate limits are reached.
 
 ### Decision
 Implement a **Dual Execution Engine**:
