@@ -3,9 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 import { GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
 import crypto from 'crypto';
-import { normalizeOpportunityUrl, generateOpportunityContentHash } from '../../src/utils/duplicateHash';
-import { calculateTrustScore } from '../../src/utils/trustScore';
-import { findApprovedSource } from '../../src/config/approvedSources';
+import { normalizeOpportunityUrl, generateOpportunityContentHash } from '../../src/utils/duplicateHash.js';
+import { calculateTrustScore } from '../../src/utils/trustScore.js';
+import { findApprovedSource } from '../../src/config/approvedSources.js';
 
 function sendJson(res: ServerResponse, status: number, body: { success: boolean; error?: string; data?: Record<string, unknown> }) {
   res.statusCode = status;
