@@ -119,7 +119,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const { data: oppData, error: oppErr } = await supabase
             .from('custom_opportunities')
             .select('*')
-            .eq('user_id', supabaseUser.id)
+            .or(`user_id.eq.${supabaseUser.id},source_type.eq.official`)
             .order('created_at', { ascending: false });
 
           if (!oppErr && oppData) {

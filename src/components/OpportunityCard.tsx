@@ -91,6 +91,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, m
           {/* Bookmark Save Button */}
           <button
             id={`btn-bookmark-${opportunity.id}`}
+            aria-label={isSaved ? `Remove ${opportunity.title} from saved opportunities` : `Save ${opportunity.title}`}
             onClick={() => toggleSaveOpportunity(opportunity.id)}
             className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-colors ${
               isSaved 

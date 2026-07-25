@@ -59,6 +59,7 @@ export const CopilotModal: React.FC = () => {
         {/* Close Button */}
         <button
           id="btn-close-copilot-modal"
+          aria-label="Close application copilot"
           onClick={() => setCopilotOpp(null)}
           className="absolute right-5 top-5 rounded-xl border border-slate-800 bg-slate-900/60 p-2 text-slate-400 hover:text-white hover:border-slate-700"
         >
