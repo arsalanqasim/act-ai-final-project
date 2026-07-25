@@ -7,7 +7,7 @@ import { Navbar } from './components/Navbar';
 import { HeroHeader } from './components/HeroHeader';
 import { StatsOverview } from './components/StatsOverview';
 import { OpportunityFeed } from './components/OpportunityFeed';
-import { SettingsModal } from './components/SettingsModal';
+
 import { AuthModal } from './components/AuthModal';
 import { OnboardingWizard } from './components/OnboardingWizard';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
@@ -72,7 +72,7 @@ const AppContent: React.FC = () => {
       {isProfileOpen && <DeferredModal label="Loading profile editor…"><ProfileModal /></DeferredModal>}
       {isIngesterOpen && <DeferredModal label="Loading opportunity ingester…"><LinkIngesterModal /></DeferredModal>}
       {copilotOpp && <DeferredModal label="Loading application copilot…"><CopilotModal /></DeferredModal>}
-      <SettingsModal />
+
       <AuthModal />
       <OnboardingWizard />
 

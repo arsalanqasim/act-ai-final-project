@@ -53,19 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCareerCenter }) => {
         {/* Action Buttons & User Auth Menu */}
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">
           
-          {/* AI Engine Status Badge */}
-          <button
-            id="btn-engine-badge"
-            onClick={() => setIsSettingsOpen(true)}
-            className={`hidden md:flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
-              engineMode === 'Secure Server AI Gateway'
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <Cpu className="h-3.5 w-3.5 text-cyan-400" />
-            <span className="truncate max-w-[150px]">{engineMode}</span>
-          </button>
+
 
           {/* AI Ingest Button */}
           <button
@@ -164,13 +152,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCareerCenter }) => {
                     <span>Alert Preferences</span>
                   </button>
 
-                  {/* Engine Settings */}
-                  <button
-                    onClick={() => { setIsSettingsOpen(true); setIsDropdownOpen(false); }}
-                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-                  >
-                    <Settings className="h-4 w-4 text-indigo-600" /> Engine Status & Privacy
-                  </button>
+
 
                   {/* Login/Signup or Logout */}
                   {isAuthenticated ? (
