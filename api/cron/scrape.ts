@@ -91,6 +91,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   let totalSkipped = 0;
 
   // 1. Gather and pre-filter all items
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newItemsToProcess: any[] = [];
 
   for (const feed of TARGET_FEEDS) {

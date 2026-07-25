@@ -5,6 +5,7 @@ import { z } from 'zod';
 import crypto from 'crypto';
 import { normalizeOpportunityUrl, generateOpportunityContentHash } from '../../src/utils/duplicateHash';
 import { calculateTrustScore } from '../../src/utils/trustScore';
+import { findApprovedSource } from '../../src/config/approvedSources';
 
 function sendJson(res: ServerResponse, status: number, body: { success: boolean; error?: string; data?: Record<string, unknown> }) {
   res.statusCode = status;
@@ -24,9 +25,9 @@ const extractedOpportunitySchema = z.object({
   applyUrl: z.string().min(1).max(2048)
 });
 
-// Helper to read body stream if Vercel doesn't auto-parse it
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getBody(req: IncomingMessage): Promise<any> {
-  // @ts-ignore - Next.js/Vercel might inject body
+  // @ts-expect-error - Next.js/Vercel might inject body
   if (req.body) return req.body;
   
   return new Promise((resolve, reject) => {
@@ -35,7 +36,7 @@ async function getBody(req: IncomingMessage): Promise<any> {
     req.on('end', () => {
       try {
         resolve(data ? JSON.parse(data) : {});
-      } catch (e) {
+      } catch {
         resolve({ text: data }); // Fallback to raw text
       }
     });
@@ -138,7 +139,7 @@ ${rawText.slice(0, 3000)}`;
 
     const parsed = extractedOpportunitySchema.safeParse(jsonValue.data);
     if (!parsed.success) {
-      return sendJson(res, 400, { success: false, error: 'AI failed to extract valid schema.', data: parsed.error });
+      return sendJson(res, 400, { success: false, error: 'AI failed to extract valid schema.', data: parsed.error.format() as unknown as Record<string, unknown> });
     }
 
     const extractedData = parsed.data;
