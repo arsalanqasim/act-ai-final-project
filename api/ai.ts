@@ -239,7 +239,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({
       success: false,
-      error: 'Secure AI processing is temporarily unavailable.',
+      error: 'GEMINI_API_KEY environment variable is not configured on server.',
       engineMode: 'Local Heuristic Engine'
     }));
     return;

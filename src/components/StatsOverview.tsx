@@ -42,11 +42,7 @@ export const StatsOverview: React.FC = () => {
 
           {/* Total Opportunities Card */}
           <div
-            role="button"
-            tabIndex={0}
-            aria-label="Open decision analytics for radar coverage"
             onClick={() => setIsInsightsOpen(true)}
-            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setIsInsightsOpen(true); } }}
             className="glass-panel cursor-pointer rounded-2xl p-4 transition-all hover:border-cyan-500/40"
           >
             <div className="flex items-center justify-between text-slate-400">
@@ -61,11 +57,7 @@ export const StatsOverview: React.FC = () => {
 
           {/* High Match Count */}
           <div
-            role="button"
-            tabIndex={0}
-            aria-label="Open decision analytics for high match fit"
             onClick={() => setIsInsightsOpen(true)}
-            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setIsInsightsOpen(true); } }}
             className="glass-panel cursor-pointer rounded-2xl p-4 transition-all hover:border-emerald-500/40"
           >
             <div className="flex items-center justify-between text-slate-400">
@@ -80,11 +72,7 @@ export const StatsOverview: React.FC = () => {
 
           {/* Avg Match Score */}
           <div
-            role="button"
-            tabIndex={0}
-            aria-label="Open decision analytics for profile compatibility"
             onClick={() => setIsInsightsOpen(true)}
-            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setIsInsightsOpen(true); } }}
             className="glass-panel cursor-pointer rounded-2xl p-4 transition-all hover:border-indigo-500/40"
           >
             <div className="flex items-center justify-between text-slate-400">
@@ -99,11 +87,7 @@ export const StatsOverview: React.FC = () => {
 
           {/* Saved Count */}
           <div
-            role="button"
-            tabIndex={0}
-            aria-label="Open decision analytics for saved items"
             onClick={() => setIsInsightsOpen(true)}
-            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setIsInsightsOpen(true); } }}
             className="glass-panel cursor-pointer rounded-2xl p-4 transition-all hover:border-purple-500/40"
           >
             <div className="flex items-center justify-between text-slate-400">
