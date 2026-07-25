@@ -1,5 +1,5 @@
-import { findApprovedSource, SourceType, TrustTier } from '../config/approvedSources';
-import { getDeadlineStatus } from './dateUtils';
+import { findApprovedSource, SourceType, TrustTier } from '../config/approvedSources.js';
+import { getDeadlineStatus } from './dateUtils.js';
 
 export type VerificationState = 'unverified' | 'source-confirmed' | 'needs-review' | 'expired';
 

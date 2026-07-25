@@ -7,6 +7,13 @@ import { normalizeOpportunityUrl, generateOpportunityContentHash } from '../../s
 import { calculateTrustScore } from '../../src/utils/trustScore.js';
 import { findApprovedSource } from '../../src/config/approvedSources.js';
 
+type JsonRecord = Record<string, unknown>;
+
+type WebhookRequest = IncomingMessage & {
+  body?: unknown;
+  rawBody?: Buffer | string;
+};
+
 function sendJson(res: ServerResponse, status: number, body: { success: boolean; error?: string; data?: Record<string, unknown> }) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json');
@@ -25,36 +32,116 @@ const extractedOpportunitySchema = z.object({
   applyUrl: z.string().min(1).max(2048)
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getBody(req: IncomingMessage): Promise<any> {
-  // @ts-expect-error - Next.js/Vercel might inject body
-  if (req.body) return req.body;
-  
+export const config = {
+  api: {
+    bodyParser: false
+  }
+};
+
+function isJsonRecord(value: unknown): value is JsonRecord {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+async function getRawBody(req: WebhookRequest): Promise<Buffer> {
+  if (req.rawBody !== undefined) {
+    return Buffer.isBuffer(req.rawBody) ? req.rawBody : Buffer.from(req.rawBody);
+  }
+
+  if (req.body !== undefined) {
+    if (Buffer.isBuffer(req.body)) return req.body;
+    if (typeof req.body === 'string') return Buffer.from(req.body);
+    return Buffer.from(JSON.stringify(req.body));
+  }
+
   return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', chunk => { data += chunk; });
-    req.on('end', () => {
-      try {
-        resolve(data ? JSON.parse(data) : {});
-      } catch {
-        resolve({ text: data }); // Fallback to raw text
-      }
-    });
+    const chunks: Buffer[] = [];
+    req.on('data', chunk => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk))));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
   });
 }
 
-export default async function handler(req: IncomingMessage, res: ServerResponse) {
+function parseBody(rawBody: Buffer): unknown {
+  const text = rawBody.toString('utf8');
+  if (!text.trim()) return {};
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return { text };
+  }
+}
+
+function getHeader(req: IncomingMessage, name: string): string | undefined {
+  const value = req.headers[name.toLowerCase()];
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function hasValidOpenWASignature(rawBody: Buffer, signature: string | undefined, secret: string): boolean {
+  if (!signature) return false;
+
+  const expected = `sha256=${crypto.createHmac('sha256', secret).update(rawBody).digest('hex')}`;
+  const receivedBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+
+  return receivedBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(receivedBuffer, expectedBuffer);
+}
+
+function getTextAt(payload: unknown, ...path: string[]): string | undefined {
+  let current: unknown = payload;
+  for (const key of path) {
+    if (!isJsonRecord(current)) return undefined;
+    current = current[key];
+  }
+  return typeof current === 'string' ? current : undefined;
+}
+
+function extractMessageText(payload: unknown): string {
+  const candidates = [
+    getTextAt(payload, 'data', 'body'),
+    getTextAt(payload, 'payload', 'message', 'body'),
+    getTextAt(payload, 'text'),
+    getTextAt(payload, 'message', 'body'),
+    getTextAt(payload, 'entry', '0', 'changes', '0', 'value', 'messages', '0', 'text', 'body')
+  ];
+
+  const firstText = candidates.find((candidate): candidate is string => Boolean(candidate?.trim()));
+  if (firstText) return firstText;
+  return typeof payload === 'string' ? payload : '';
+}
+
+export default async function handler(req: WebhookRequest, res: ServerResponse) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { success: false, error: 'Method not allowed. Use POST.' });
   }
 
-  // Authorization check using WHATSAPP_WEBHOOK_SECRET
-  const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET || process.env.CRON_SECRET;
-  const authHeader = (req.headers.authorization || '').replace('Bearer ', '').trim();
-  
-  if (!webhookSecret || authHeader !== webhookSecret) {
+  const rawBody = await getRawBody(req);
+  const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET || process.env.OPENWA_WEBHOOK_SECRET || process.env.CRON_SECRET;
+  const authHeader = getHeader(req, 'authorization') || '';
+  const bearerToken = authHeader.replace(/^Bearer\s+/i, '').trim();
+  const signature = getHeader(req, 'x-openwa-signature');
+  const isAuthorized = Boolean(webhookSecret) && (
+    bearerToken === webhookSecret || hasValidOpenWASignature(rawBody, signature, webhookSecret as string)
+  );
+
+  if (!webhookSecret) {
+    return sendJson(res, 503, { success: false, error: 'Webhook secret is not configured on the server.' });
+  }
+
+  if (!isAuthorized) {
     return sendJson(res, 401, { success: false, error: 'Unauthorized webhook request.' });
+  }
+
+  const payload = parseBody(rawBody);
+
+  if (getTextAt(payload, 'event') === 'test') {
+    return sendJson(res, 200, { success: true, data: { status: 'accepted', reason: 'OpenWA test delivery received.' } });
+  }
+
+  const rawText = extractMessageText(payload);
+
+  if (!rawText || rawText.trim().length < 20) {
+    return sendJson(res, 200, { success: true, data: { status: 'ignored', reason: 'No opportunity text found in webhook event.' } });
   }
 
   const supabaseUrl = process.env.SUPABASE_URL;
@@ -63,24 +150,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
   if (!supabaseUrl || !supabaseKey || !geminiApiKey) {
     return sendJson(res, 503, { success: false, error: 'Server configuration missing (Database or AI keys).' });
-  }
-
-  const payload = await getBody(req);
-  
-  // Extract text from OpenWA webhook payload or fallback to generic text field
-  let rawText = '';
-  if (payload?.event === 'onMessage' && payload?.data?.body) {
-    rawText = payload.data.body;
-  } else if (payload?.text) {
-    rawText = payload.text;
-  } else if (typeof payload === 'string') {
-    rawText = payload;
-  } else {
-    rawText = JSON.stringify(payload);
-  }
-
-  if (!rawText || rawText.trim().length < 20) {
-    return sendJson(res, 400, { success: false, error: 'Payload text too short or empty.' });
   }
 
   const adminClient = createClient(supabaseUrl, supabaseKey);

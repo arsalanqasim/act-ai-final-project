@@ -1,4 +1,4 @@
-import { findApprovedSource, ApprovedSource } from '../../src/config/approvedSources';
+import { findApprovedSource, ApprovedSource } from '../../src/config/approvedSources.js';
 import { lookup } from 'node:dns/promises';
 
 /**

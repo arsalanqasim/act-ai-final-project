@@ -3,9 +3,9 @@ import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenAI } from '@google/genai';
 
-import { validateUrlSecurityAndDomain, fetchHtmlSafely, extractReadableTextFromHtml } from './utils/urlSecurity';
-import { normalizeOpportunityUrl, generateOpportunityContentHash } from '../src/utils/duplicateHash';
-import { calculateTrustScore } from '../src/utils/trustScore';
+import { validateUrlSecurityAndDomain, fetchHtmlSafely, extractReadableTextFromHtml } from './utils/urlSecurity.js';
+import { normalizeOpportunityUrl, generateOpportunityContentHash } from '../src/utils/duplicateHash.js';
+import { calculateTrustScore } from '../src/utils/trustScore.js';
 
 // Request Validation Schemas
 const ingestUrlSchema = z.object({
