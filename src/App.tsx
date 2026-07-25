@@ -7,6 +7,7 @@ import { Navbar } from './components/Navbar';
 import { HeroHeader } from './components/HeroHeader';
 import { StatsOverview } from './components/StatsOverview';
 import { OpportunityFeed } from './components/OpportunityFeed';
+import { CursorTrail } from './components/CursorTrail';
 
 import { AuthModal } from './components/AuthModal';
 import { OnboardingWizard } from './components/OnboardingWizard';
@@ -51,6 +52,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
+      <CursorTrail />
       
       <div>
         {!isOnline && <div id="offline-status-banner" role="status" aria-live="polite" className="flex items-center justify-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs font-semibold text-amber-700"><WifiOff className="h-3.5 w-3.5" aria-hidden="true" />You are offline. New changes will stay local until your connection returns.</div>}

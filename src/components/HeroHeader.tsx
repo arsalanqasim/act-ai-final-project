@@ -6,7 +6,7 @@ export const HeroHeader: React.FC = () => {
   const { userProfile, opportunities, setIsProfileOpen } = useApp();
 
   return (
-    <div className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-slate-50 via-white to-white py-16 sm:py-20 px-4 sm:px-6">
+    <div className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-slate-50 via-white to-white py-16 sm:py-10 px-4 sm:px-6">
       
       {/* Glow Orbs background */}
       <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-[600px] rounded-full bg-cyan-500/10 blur-3xl" />
@@ -22,7 +22,7 @@ export const HeroHeader: React.FC = () => {
             Cut the Noise. Land the <span className="bg-gradient-to-r from-cyan-600 via-teal-500 to-indigo-600 bg-clip-text text-transparent pr-1">Opportunity</span>.
           </h1>
           <p className="mt-6 text-base text-slate-600 sm:text-lg leading-relaxed sm:leading-loose">
-            Stop searching across WhatsApp groups, LinkedIn, blogs, and newsletters. OpportunityPulse AI filters the noise and matches you with internships, scholarships, tech grants, and remote roles tailored to your skills.
+            Stop searching across 50+ WhatsApp groups, LinkedIn, blogs, and newsletters. OpportunityPulse AI filters the noise and matches you with internships, scholarships, tech grants, and remote roles tailored to your skills.
           </p>
         </div>
 
