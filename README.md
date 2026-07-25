@@ -1,6 +1,6 @@
 # 🚀 OpportunityPulse AI — Agentic Opportunity Radar & Career Growth Platform
 
-> **HEC ACT-AI Capstone Project Report — Phase 4: Career Execution Command Center**
+> **Capstone Project Report — Phase 4: Career Execution Command Center**
 >
 > **Author / Maintainer**: Arsalan Qasim
 >
@@ -11,7 +11,7 @@
 
 ## 📌 1. Project Context & Purpose
 
-**OpportunityPulse AI** is an Agentic AI-powered Opportunity Radar & Career Growth Platform built for the **HEC ACT-AI Capstone Project**. It cuts through social media noise to help university students, fresh graduates, and tech youth discover, match, and apply for high-signal career opportunities (AI Hackathons, International Scholarships, Remote Internships, and Tech Grants).
+**OpportunityPulse AI** is an Agentic AI-powered Opportunity Radar & Career Growth Platform. It cuts through social media noise to help university students, fresh graduates, and tech youth discover, match, and apply for high-signal career opportunities (AI Hackathons, International Scholarships, Remote Internships, and Tech Grants).
 
 Phase 2 upgrades the raw "text paste" prototype into a production-grade **Trusted Ingestion & Provenance Workflow**, featuring strict SSRF security controls, an approved source registry allowlist, deterministic trust scores, duplicate opportunity detection, and honest verification badges.
 

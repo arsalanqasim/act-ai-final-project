@@ -51,25 +51,25 @@ export const OnboardingWizard: React.FC = () => {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
-        <div className="glass-panel relative w-full max-w-xl rounded-3xl p-6 sm:p-8 border-slate-700 shadow-2xl">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 overflow-y-auto">
+        <div className="bg-white relative w-full max-w-xl rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xl">
           
           {/* Wizard Step Indicator */}
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400 font-bold text-xs">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-700 font-bold text-xs">
                 {step}/3
               </div>
-              <span className="font-['Outfit'] font-bold text-white text-sm sm:text-base">
+              <span className="font-['Outfit'] font-bold text-slate-900 text-sm sm:text-base">
                 Profile Setup & Radar Calibration
               </span>
             </div>
 
             {/* Progress dots */}
             <div className="flex items-center gap-1.5">
-              <div className={`h-2 w-6 rounded-full transition-all ${step >= 1 ? 'bg-cyan-400' : 'bg-slate-800'}`} />
-              <div className={`h-2 w-6 rounded-full transition-all ${step >= 2 ? 'bg-cyan-400' : 'bg-slate-800'}`} />
-              <div className={`h-2 w-6 rounded-full transition-all ${step >= 3 ? 'bg-cyan-400' : 'bg-slate-800'}`} />
+              <div className={`h-2 w-6 rounded-full transition-all ${step >= 1 ? 'bg-cyan-600' : 'bg-slate-200'}`} />
+              <div className={`h-2 w-6 rounded-full transition-all ${step >= 2 ? 'bg-cyan-600' : 'bg-slate-200'}`} />
+              <div className={`h-2 w-6 rounded-full transition-all ${step >= 3 ? 'bg-cyan-600' : 'bg-slate-200'}`} />
             </div>
           </div>
 
@@ -78,12 +78,12 @@ export const OnboardingWizard: React.FC = () => {
             <div className="mt-6 space-y-4">
               
               {/* CV Auto-fill banner */}
-              <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4 flex items-center justify-between gap-3">
+              <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <FileText className="h-6 w-6 text-cyan-400 shrink-0" />
+                  <FileText className="h-6 w-6 text-cyan-600 shrink-0" />
                   <div>
-                    <strong className="text-xs font-bold text-white">Have a Resume / CV?</strong>
-                    <p className="text-[11px] text-slate-300">Upload your CV to extract your skills, title, and profile automatically.</p>
+                    <strong className="text-xs font-bold text-slate-900">Have a Resume / CV?</strong>
+                    <p className="text-[11px] text-slate-600">Upload your CV to extract your skills, title, and profile automatically.</p>
                   </div>
                 </div>
                 <button
@@ -95,11 +95,11 @@ export const OnboardingWizard: React.FC = () => {
                 </button>
               </div>
 
-              <div className="flex items-center gap-2 text-cyan-400 pt-2">
+              <div className="flex items-center gap-2 text-cyan-600 pt-2">
                 <Layers className="h-5 w-5" />
-                <h3 className="font-['Outfit'] text-lg font-bold text-white">Select Your Core Technical & Academic Skills</h3>
+                <h3 className="font-['Outfit'] text-lg font-bold text-slate-900">Select Your Core Technical & Academic Skills</h3>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 Click on the skills that match your experience. (Select at least 1 or 2 skills).
               </p>
 
@@ -113,8 +113,8 @@ export const OnboardingWizard: React.FC = () => {
                       onClick={() => toggleSkill(skill)}
                       className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
                         selected 
-                          ? 'bg-cyan-500 text-black border border-cyan-400 shadow-md shadow-cyan-500/20' 
-                          : 'bg-slate-900/60 text-slate-400 border border-slate-800 hover:border-slate-700'
+                          ? 'bg-cyan-600 text-white border-cyan-700 shadow-sm' 
+                          : 'bg-white text-slate-600 border border-slate-300 hover:border-slate-400 hover:bg-slate-50'
                       }`}
                     >
                       {selected ? '✓ ' : '+ '} {skill}
@@ -123,7 +123,7 @@ export const OnboardingWizard: React.FC = () => {
                 })}
               </div>
 
-              <div className="border-t border-slate-800 pt-4 flex justify-end">
+              <div className="border-t border-slate-200 pt-4 flex justify-end">
                 <button
                   id="btn-wizard-next-1"
                   type="button"
@@ -139,11 +139,11 @@ export const OnboardingWizard: React.FC = () => {
           {/* STEP 2: CATEGORY SELECTOR */}
           {step === 2 && (
             <div className="mt-6 space-y-4">
-              <div className="flex items-center gap-2 text-cyan-400">
+              <div className="flex items-center gap-2 text-cyan-600">
                 <Award className="h-5 w-5" />
-                <h3 className="font-['Outfit'] text-lg font-bold text-white">Target Opportunity Categories</h3>
+                <h3 className="font-['Outfit'] text-lg font-bold text-slate-900">Target Opportunity Categories</h3>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 Select the types of opportunities you want OpportunityPulse AI to prioritize.
               </p>
 
@@ -157,22 +157,22 @@ export const OnboardingWizard: React.FC = () => {
                       onClick={() => toggleCategory(cat)}
                       className={`flex items-center justify-between rounded-2xl p-3 text-xs font-semibold border transition-all ${
                         active 
-                          ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-300' 
-                          : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:border-slate-700'
+                          ? 'bg-cyan-50 border-cyan-300 text-cyan-700' 
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 shadow-sm'
                       }`}
                     >
                       <span>{cat} Opportunities</span>
-                      {active && <Check className="h-4 w-4 text-cyan-400" />}
+                      {active && <Check className="h-4 w-4 text-cyan-600" />}
                     </button>
                   );
                 })}
               </div>
 
-              <div className="border-t border-slate-800 pt-4 flex justify-between">
+              <div className="border-t border-slate-200 pt-4 flex justify-between">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700"
+                  className="rounded-xl bg-slate-100 border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900"
                 >
                   Back
                 </button>
@@ -191,11 +191,11 @@ export const OnboardingWizard: React.FC = () => {
           {/* STEP 3: LOCATION & FINISH */}
           {step === 3 && (
             <div className="mt-6 space-y-4">
-              <div className="flex items-center gap-2 text-cyan-400">
+              <div className="flex items-center gap-2 text-cyan-600">
                 <Globe className="h-5 w-5" />
-                <h3 className="font-['Outfit'] text-lg font-bold text-white">Preferred Location / Format</h3>
+                <h3 className="font-['Outfit'] text-lg font-bold text-slate-900">Preferred Location / Format</h3>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 Select your preferred opportunity format.
               </p>
 
@@ -212,21 +212,21 @@ export const OnboardingWizard: React.FC = () => {
                     onClick={() => setSelectedLocation(item.id as LocationPreference)}
                     className={`flex flex-col text-left rounded-2xl p-3.5 border transition-all ${
                       selectedLocation === item.id 
-                        ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-300' 
-                        : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:border-slate-700'
+                        ? 'bg-cyan-50 border-cyan-300 text-cyan-700' 
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 shadow-sm'
                     }`}
                   >
-                    <strong className="text-xs font-semibold text-white">{item.label}</strong>
-                    <span className="text-[11px] text-slate-400 mt-0.5">{item.desc}</span>
+                    <strong className="text-xs font-semibold text-slate-900">{item.label}</strong>
+                    <span className="text-[11px] text-slate-500 mt-0.5">{item.desc}</span>
                   </button>
                 ))}
               </div>
 
-              <div className="border-t border-slate-800 pt-4 flex justify-between">
+              <div className="border-t border-slate-200 pt-4 flex justify-between">
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700"
+                  className="rounded-xl bg-slate-100 border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900"
                 >
                   Back
                 </button>

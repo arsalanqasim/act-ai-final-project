@@ -41,13 +41,13 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
   return (
     <div
       id={`kanban-card-${app.id}`}
-      className="group rounded-xl border border-slate-800 bg-slate-900/60 p-3 space-y-2 transition-all hover:border-slate-700 hover:bg-slate-900/80 focus-within:border-cyan-500/50"
+      className="group rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2 transition-all hover:border-slate-300 hover:bg-slate-100 shadow-sm focus-within:border-cyan-500/50"
     >
       {/* Opportunity title */}
       <button
         id={`kanban-card-open-${app.id}`}
         onClick={() => onOpenWorkspace(app)}
-        className="w-full text-left text-xs font-semibold text-slate-200 hover:text-white transition-colors line-clamp-2"
+        className="w-full text-left text-xs font-semibold text-slate-900 hover:text-cyan-700 transition-colors line-clamp-2"
         title={`Open workspace for ${opp?.title}`}
       >
         {opp?.title ?? 'Unknown Opportunity'}
@@ -84,7 +84,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
           disabled={!canMoveLeft}
           aria-label={`Move ${opp?.title ?? 'application'} to previous status`}
           title="Move to previous stage"
-          className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-slate-500 hover:text-slate-200 hover:border-slate-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-slate-900 hover:border-slate-300 hover:bg-slate-50 shadow-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronLeft className="h-3 w-3" />
         </button>
@@ -95,7 +95,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
           disabled={!canMoveRight}
           aria-label={`Move ${opp?.title ?? 'application'} to next status`}
           title="Move to next stage"
-          className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-slate-500 hover:text-slate-200 hover:border-slate-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-slate-900 hover:border-slate-300 hover:bg-slate-50 shadow-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronRight className="h-3 w-3" />
         </button>
@@ -105,7 +105,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
           onClick={() => onCreateTask(app)}
           aria-label={`Add task for ${opp?.title ?? 'application'}`}
           title="Add action task"
-          className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-slate-500 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors"
+          className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-cyan-700 hover:border-cyan-300 hover:bg-cyan-50 shadow-sm transition-colors"
         >
           <Plus className="h-3 w-3" />
         </button>
@@ -118,7 +118,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
             rel="noopener noreferrer"
             aria-label={`Open apply portal for ${opp?.title ?? 'application'}`}
             title="Open apply portal"
-            className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-slate-500 hover:text-indigo-400 hover:border-indigo-500/40 transition-colors ml-auto"
+            className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-indigo-700 hover:border-indigo-300 hover:bg-indigo-50 shadow-sm transition-colors ml-auto"
           >
             <ExternalLink className="h-3 w-3" />
           </a>
@@ -237,7 +237,7 @@ export const ApplicationKanbanBoard: React.FC = () => {
               {/* Cards */}
               <div className="space-y-2 min-h-[80px]">
                 {cards.length === 0 ? (
-                  <div className="flex items-center justify-center h-20 rounded-xl border border-dashed border-slate-800 text-slate-600">
+                  <div className="flex items-center justify-center h-20 rounded-xl border border-dashed border-slate-300 text-slate-400">
                     <Inbox className="h-4 w-4" />
                   </div>
                 ) : (

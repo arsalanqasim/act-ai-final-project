@@ -49,17 +49,17 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
 ];
 
 const URGENCY_STYLES: Record<PrioritizedAction['urgency'], string> = {
-  critical: 'border-red-500/40 bg-red-500/5',
-  high: 'border-amber-500/40 bg-amber-500/5',
-  medium: 'border-cyan-500/30 bg-cyan-500/5',
-  low: 'border-slate-800 bg-slate-900/40',
+  critical: 'border-red-200 bg-red-50',
+  high: 'border-amber-200 bg-amber-50',
+  medium: 'border-cyan-200 bg-cyan-50',
+  low: 'border-slate-200 bg-white',
 };
 
 const URGENCY_BADGE: Record<PrioritizedAction['urgency'], string> = {
-  critical: 'bg-red-500/20 text-red-300 border-red-500/40',
-  high: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-  medium: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
-  low: 'bg-slate-700 text-slate-400 border-slate-600',
+  critical: 'bg-red-100 text-red-800 border-red-200',
+  high: 'bg-amber-100 text-amber-800 border-amber-200',
+  medium: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+  low: 'bg-slate-100 text-slate-600 border-slate-200',
 };
 
 const PRIORITY_DOT: Record<string, string> = {
@@ -78,9 +78,9 @@ const SectionEmpty: React.FC<{ icon: React.ReactNode; title: string; body: strin
   title,
   body,
 }) => (
-  <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400">
-    <span className="text-slate-600">{icon}</span>
-    <p className="text-sm font-medium">{title}</p>
+  <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-500">
+    <span className="text-slate-400">{icon}</span>
+    <p className="text-sm font-semibold text-slate-700">{title}</p>
     <p className="text-xs text-slate-500 text-center max-w-xs">{body}</p>
   </div>
 );
@@ -144,7 +144,7 @@ const ActionQueueItem: React.FC<ActionQueueItemProps> = ({
             >
               {action.urgency}
             </span>
-            <span className="text-xs font-semibold text-slate-200 line-clamp-1">
+            <span className="text-xs font-semibold text-slate-900 line-clamp-1">
               {action.title}
             </span>
           </div>
@@ -160,7 +160,7 @@ const ActionQueueItem: React.FC<ActionQueueItemProps> = ({
               id={`btn-edit-action-task-${action.taskId}`}
               onClick={() => linkedTask && onEditTask(linkedTask)}
               aria-label="Edit task"
-              className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-800 text-slate-500 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors"
+              className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-cyan-600 hover:border-cyan-200 hover:bg-cyan-50 transition-colors"
             >
               <Pencil className="h-3 w-3" />
             </button>
@@ -170,7 +170,7 @@ const ActionQueueItem: React.FC<ActionQueueItemProps> = ({
                   id={`btn-confirm-delete-task-${action.taskId}`}
                   onClick={() => onDeleteTask(action.taskId!)}
                   aria-label="Confirm delete task"
-                  className="rounded-lg bg-red-500/20 border border-red-500/40 px-2 py-0.5 text-[10px] font-bold text-red-300 hover:bg-red-500/30 transition-colors"
+                  className="rounded-lg bg-red-50 border border-red-200 px-2 py-0.5 text-[10px] font-bold text-red-600 hover:bg-red-100 transition-colors"
                 >
                   Delete
                 </button>
@@ -178,7 +178,7 @@ const ActionQueueItem: React.FC<ActionQueueItemProps> = ({
                   id={`btn-cancel-delete-task-${action.taskId}`}
                   onClick={() => setConfirmDelete(false)}
                   aria-label="Cancel delete"
-                  className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors"
+                  className="text-[10px] text-slate-500 hover:text-slate-700 transition-colors"
                 >
                   Cancel
                 </button>
@@ -188,7 +188,7 @@ const ActionQueueItem: React.FC<ActionQueueItemProps> = ({
                 id={`btn-delete-action-task-${action.taskId}`}
                 onClick={() => setConfirmDelete(true)}
                 aria-label="Delete task"
-                className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-800 text-slate-500 hover:text-red-400 hover:border-red-500/40 transition-colors"
+                className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
               >
                 <Trash2 className="h-3 w-3" />
               </button>
@@ -202,7 +202,7 @@ const ActionQueueItem: React.FC<ActionQueueItemProps> = ({
             id={`btn-open-app-from-queue-${action.applicationId}`}
             onClick={() => onOpenApp(action.applicationId!)}
             aria-label={`Open workspace for ${action.title}`}
-            className="shrink-0 flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900/60 px-2 py-1 text-[10px] font-semibold text-slate-400 hover:text-white hover:border-slate-700 transition-colors"
+            className="shrink-0 flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
           >
             Open
           </button>
@@ -217,7 +217,7 @@ const ActionQueueItem: React.FC<ActionQueueItemProps> = ({
             {action.reasons.map((r, i) => (
               <span
                 key={i}
-                className="text-[10px] text-slate-500 rounded-full bg-slate-800/80 border border-slate-700/50 px-1.5 py-0.5"
+                className="text-[10px] text-slate-600 rounded-full bg-slate-100 border border-slate-200 px-1.5 py-0.5"
               >
                 {r}
               </span>
@@ -393,7 +393,7 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
   return (
     <div
       id="career-command-center-overlay"
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/85 backdrop-blur-md overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 backdrop-blur-md overflow-y-auto"
       role="presentation"
     >
       <div
@@ -403,22 +403,22 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
         aria-labelledby="career-center-title"
         tabIndex={-1}
         ref={dialogRef}
-        className="relative w-full max-w-7xl min-h-screen sm:min-h-0 sm:my-6 sm:rounded-2xl border border-slate-700/80 bg-[#0B0F19] text-slate-100 shadow-2xl flex flex-col focus:outline-none"
+        className="relative w-full max-w-7xl min-h-screen sm:min-h-0 sm:my-6 sm:rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl flex flex-col focus:outline-none"
       >
         {/* ── Header ── */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-5 sm:px-6 py-4 bg-slate-900/60 sm:rounded-t-2xl shrink-0">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 sm:px-6 py-4 bg-slate-50 sm:rounded-t-2xl shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 shadow-lg shadow-cyan-500/20">
-              <Zap className="h-5 w-5 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-50 to-indigo-50 border border-cyan-200">
+              <Zap className="h-5 w-5 text-cyan-700" />
             </div>
             <div>
               <h2
                 id="career-center-title"
-                className="font-['Outfit'] text-lg font-bold text-white"
+                className="font-['Outfit'] text-lg font-bold text-slate-900"
               >
                 My Career Workspace
               </h2>
-              <p className="text-xs text-slate-400 hidden sm:block">
+              <p className="text-xs text-slate-500 hidden sm:block">
                 Manage applications, deadlines, tasks, and your progress.
               </p>
             </div>
@@ -426,14 +426,14 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
 
           <div className="flex items-center gap-2">
             {isGuest && (
-              <span className="hidden sm:inline-block rounded-lg bg-amber-500/10 border border-amber-500/20 px-2 py-1 text-[10px] text-amber-300 font-medium">
+              <span className="hidden sm:inline-block rounded-lg bg-amber-50 border border-amber-200 px-2 py-1 text-[10px] text-amber-700 font-medium">
                 Guest — data saved locally
               </span>
             )}
             <button
               id="btn-new-task-global"
               onClick={() => { setEditingTask(null); setIsNewTaskOpen(true); }}
-              className="flex items-center gap-1.5 rounded-xl bg-cyan-500/20 border border-cyan-500/30 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/30 transition-all"
+              className="flex items-center gap-1.5 rounded-xl bg-cyan-50 border border-cyan-200 px-3 py-1.5 text-xs font-semibold text-cyan-700 hover:bg-cyan-100 transition-all"
             >
               <Plus className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">New Task</span>
@@ -442,7 +442,7 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
               id="btn-close-career-center"
               onClick={onClose}
               aria-label="Close Career Workspace"
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 hover:text-white transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -454,19 +454,19 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
           <div
             role="alert"
             aria-live="assertive"
-            className="flex items-center justify-between gap-3 border-b border-red-500/20 bg-red-500/10 px-6 py-2.5 text-xs text-red-300 shrink-0"
+            className="flex items-center justify-between gap-3 border-b border-red-200 bg-red-50 px-6 py-2.5 text-xs text-red-700 shrink-0"
           >
             <div className="flex items-center gap-2">
               <AlertCircle className="h-3.5 w-3.5 shrink-0" />
               {tasksError || appsError}
             </div>
-            <div className="flex items-center gap-3"><button id="btn-retry-career-data" type="button" onClick={() => { void retryLoadTasks(); void retryLoadApplications(); }} className="inline-flex items-center gap-1 text-red-300 hover:text-white font-semibold underline"><RefreshCcw className="h-3 w-3" aria-hidden="true" />Retry</button><button id="btn-dismiss-career-error" type="button" onClick={clearError} className="text-red-400 hover:text-red-200 font-semibold underline">Dismiss</button></div>
+            <div className="flex items-center gap-3"><button id="btn-retry-career-data" type="button" onClick={() => { void retryLoadTasks(); void retryLoadApplications(); }} className="inline-flex items-center gap-1 text-red-700 hover:text-red-900 font-semibold underline"><RefreshCcw className="h-3 w-3" aria-hidden="true" />Retry</button><button id="btn-dismiss-career-error" type="button" onClick={clearError} className="text-red-600 hover:text-red-800 font-semibold underline">Dismiss</button></div>
           </div>
         )}
 
         {/* ── Tab Bar ── */}
         <div
-          className="flex items-center gap-1 border-b border-slate-800 px-4 overflow-x-auto shrink-0 bg-slate-900/40"
+          className="flex items-center gap-1 border-b border-slate-200 px-4 overflow-x-auto shrink-0 bg-slate-50"
           role="tablist"
           aria-label="Career workspace sections"
         >
@@ -480,8 +480,8 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 whitespace-nowrap px-3 py-3 text-xs font-semibold border-b-2 transition-all ${
                 activeTab === tab.id
-                  ? 'border-cyan-500 text-cyan-300'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-cyan-600 text-cyan-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-900'
               }`}
             >
               {tab.icon}
@@ -509,8 +509,8 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-200">Application Pipeline</h3>
-                      <p className="text-xs text-slate-400">
+                      <h3 className="text-sm font-semibold text-slate-900">Application Pipeline</h3>
+                      <p className="text-xs text-slate-500">
                         {applications.length} application{applications.length !== 1 ? 's' : ''} tracked. Use ‹ › to move between stages.
                       </p>
                     </div>
@@ -536,8 +536,8 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                   className="p-4 sm:p-6"
                 >
                   <div className="mb-4">
-                    <h3 className="text-sm font-semibold text-slate-200">Deadline Timeline</h3>
-                    <p className="text-xs text-slate-400">Ordered by urgency. Expired opportunities are excluded.</p>
+                    <h3 className="text-sm font-semibold text-slate-900">Deadline Timeline</h3>
+                    <p className="text-xs text-slate-500">Ordered by urgency. Expired opportunities are excluded.</p>
                   </div>
 
                   {timelineItems.length === 0 ? (
@@ -557,24 +557,24 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                             id={`timeline-item-${idx}`}
                             className={`flex items-center gap-4 rounded-xl border p-3 transition-all ${
                               item.isExpired
-                                ? 'border-red-500/20 bg-red-500/5 opacity-60'
+                                ? 'border-red-200 bg-red-50 opacity-60'
                                 : urgentDays
-                                ? 'border-amber-500/30 bg-amber-500/5'
-                                : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
+                                ? 'border-amber-200 bg-amber-50'
+                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                             }`}
                           >
                             {/* Day count */}
                             <div className="shrink-0 text-center w-14">
                               {item.isExpired ? (
-                                <span className="text-[10px] font-bold text-red-400">EXPIRED</span>
+                                <span className="text-[10px] font-bold text-red-600">EXPIRED</span>
                               ) : item.daysLeft === 0 ? (
-                                <span className="text-lg font-black text-red-400">TODAY</span>
+                                <span className="text-lg font-black text-red-600">TODAY</span>
                               ) : item.daysLeft === 1 ? (
-                                <span className="text-lg font-black text-amber-400">1d</span>
+                                <span className="text-lg font-black text-amber-600">1d</span>
                               ) : item.daysLeft !== null ? (
                                 <span
                                   className={`text-lg font-black ${
-                                    item.daysLeft <= 7 ? 'text-amber-300' : 'text-slate-300'
+                                    item.daysLeft <= 7 ? 'text-amber-600' : 'text-slate-700'
                                   }`}
                                 >
                                   {item.daysLeft}d
@@ -586,7 +586,7 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
 
                             {/* Details */}
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-slate-200 truncate">{item.title}</p>
+                              <p className="text-xs font-semibold text-slate-900 truncate">{item.title}</p>
                               <p className="text-[11px] text-slate-500 truncate">{item.organization}</p>
                             </div>
 
@@ -597,7 +597,7 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                                   {STATUS_CONFIGS[item.status as keyof typeof STATUS_CONFIGS]?.shortLabel}
                                 </span>
                               ) : (
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-slate-800 text-slate-400 border-slate-700">
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-slate-100 text-slate-600 border-slate-200">
                                   Saved
                                 </span>
                               )}
@@ -609,7 +609,7 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                                 id={`timeline-open-app-${item.id}`}
                                 onClick={() => handleOpenApp(item.applicationId!)}
                                 aria-label={`Open workspace for ${item.title}`}
-                                className="shrink-0 text-[10px] font-semibold text-slate-500 hover:text-slate-200 transition-colors"
+                                className="shrink-0 text-[10px] font-semibold text-slate-500 hover:text-slate-900 transition-colors"
                               >
                                 Open →
                               </button>
@@ -632,15 +632,15 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-200">Today's Action Queue</h3>
-                      <p className="text-xs text-slate-400">
+                      <h3 className="text-sm font-semibold text-slate-900">Today's Action Queue</h3>
+                      <p className="text-xs text-slate-500">
                         Deterministic priority based on deadlines, match scores, and task urgency. Not AI-generated.
                       </p>
                     </div>
                     <button
                       id="btn-new-task-from-actions"
                       onClick={() => { setEditingTask(null); setIsNewTaskOpen(true); }}
-                      className="flex items-center gap-1 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white hover:border-slate-700 transition-colors"
+                      className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 transition-colors"
                     >
                       <Plus className="h-3.5 w-3.5" /> New Task
                     </button>
@@ -658,7 +658,7 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                           <div
                             key={task.id}
                             id={`task-list-item-${task.id}`}
-                            className="flex items-start gap-2 rounded-xl border border-slate-800 bg-slate-900/40 p-2.5 transition-all hover:border-slate-700"
+                            className="flex items-start gap-2 rounded-xl border border-slate-200 bg-white p-2.5 transition-all hover:border-slate-300"
                           >
                             <button
                               id={`btn-complete-task-${task.id}`}
@@ -673,7 +673,7 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                                 <span
                                   className={`h-1.5 w-1.5 rounded-full shrink-0 ${PRIORITY_DOT[task.priority] ?? 'bg-slate-500'}`}
                                 />
-                                <p className="text-xs font-semibold text-slate-200 truncate">{task.title}</p>
+                                <p className="text-xs font-semibold text-slate-900 truncate">{task.title}</p>
                               </div>
                               {task.dueAt && (
                                 <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
@@ -687,7 +687,7 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                                 id={`btn-task-edit-inline-${task.id}`}
                                 onClick={() => setEditingTask(task)}
                                 aria-label="Edit task"
-                                className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-800 text-slate-500 hover:text-cyan-400 transition-colors"
+                                className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-cyan-600 hover:bg-cyan-50 transition-colors"
                               >
                                 <Pencil className="h-3 w-3" />
                               </button>
@@ -695,7 +695,7 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                                 id={`btn-task-delete-inline-${task.id}`}
                                 onClick={() => deleteTask(task.id).catch(console.error)}
                                 aria-label="Delete task"
-                                className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-800 text-slate-500 hover:text-red-400 transition-colors"
+                                className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </button>
@@ -717,13 +717,13 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                         .map((task) => (
                           <div
                             key={task.id}
-                            className="flex items-center gap-2 rounded-xl border border-slate-800/50 p-2.5 opacity-60"
+                            className="flex items-center gap-2 rounded-xl border border-slate-200 p-2.5 opacity-60"
                           >
                             <button
                               id={`btn-reopen-task-${task.id}`}
                               onClick={() => reopenTask(task.id).catch(console.error)}
                               aria-label={`Reopen task: ${task.title}`}
-                              className="shrink-0 text-emerald-400 hover:text-slate-400 transition-colors"
+                              className="shrink-0 text-emerald-400 hover:text-slate-600 transition-colors"
                             >
                               <CheckCircle2 className="h-4 w-4" />
                             </button>
@@ -775,7 +775,7 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                   aria-labelledby="career-tab-progress"
                   className="p-4 sm:p-6"
                 >
-                  <h3 className="text-sm font-semibold text-slate-200 mb-4">Progress Summary</h3>
+                  <h3 className="text-sm font-semibold text-slate-900 mb-4">Progress Summary</h3>
 
                   {metrics.total === 0 ? (
                     <SectionEmpty
@@ -797,22 +797,24 @@ export const CareerCommandCenterModal: React.FC<CareerCommandCenterModalProps> =
                         ].map((stat) => (
                           <div
                             key={stat.label}
-                            className={`rounded-xl border ${stat.color} bg-slate-900/60 p-4 flex flex-col gap-1`}
+                            className={`rounded-xl border ${stat.color} bg-slate-50 p-4 flex flex-col gap-1`}
                           >
                             {stat.icon}
                             <span className="text-2xl font-black text-white">{stat.value}</span>
                             <span className="text-[11px] text-slate-400">{stat.label}</span>
+                            <span className="text-2xl font-black text-slate-900">{stat.value}</span>
+                            <span className="text-[11px] text-slate-500">{stat.label}</span>
                           </div>
                         ))}
                       </div>
 
                       {/* Completion rate */}
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-slate-300">Application Completion Rate</span>
-                          <span className="text-sm font-black text-cyan-300">{metrics.completionRate}%</span>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 shadow-sm p-4 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-500 font-medium">Auto-Ingestion Quota</span>
+                          <span className="text-slate-900 font-bold">14 / 20</span>
                         </div>
-                        <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                        <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
                           <div
                             className="h-full bg-gradient-to-r from-cyan-500 to-indigo-600 transition-all duration-500"
                             style={{ width: `${metrics.completionRate}%` }}
