@@ -155,9 +155,9 @@ export const ProfileModal: React.FC = () => {
                 onChange={e => setFormData({ ...formData, preferredLocation: e.target.value as LocationPreference })}
                 className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 text-xs sm:text-sm shadow-sm"
               >
-                <option value="Remote">🌐 Remote Opportunities Only</option>
-                <option value="Pakistan">🇵🇰 Pakistan Local Opportunities</option>
-                <option value="Global">✈️ International Study & Exchange (Global)</option>
+                <option value="Remote">Remote Opportunities Only</option>
+                <option value="Pakistan">Pakistan Local Opportunities</option>
+                <option value="Global">International Study & Exchange (Global)</option>
                 <option value="Hybrid">Hybrid (Remote + In-Person)</option>
               </select>
             </div>

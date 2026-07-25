@@ -109,13 +109,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCareerCenter }) => {
                     )}
                   </div>
 
-                  <button
-                    id="btn-career-workspace-dropdown"
-                    onClick={() => { if (onOpenCareerCenter) onOpenCareerCenter(); setIsDropdownOpen(false); }}
-                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-cyan-600 hover:bg-cyan-500/10 transition-colors mt-1"
-                  >
-                    <LayoutDashboard className="h-4 w-4 text-cyan-600" /> My Career Workspace
-                  </button>
+
 
                   <button
                     onClick={() => { setIsProfileOpen(true); setIsDropdownOpen(false); }}
@@ -126,7 +120,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCareerCenter }) => {
 
                   {/* Saved Opportunities (Bookmarks) */}
                   <button
-                    onClick={() => { setIsProfileOpen(true); setIsDropdownOpen(false); }}
+                    onClick={() => { if (onOpenCareerCenter) onOpenCareerCenter(); setIsDropdownOpen(false); }}
                     className="w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
                     title="Saved Opportunities"
                   >

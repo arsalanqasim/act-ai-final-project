@@ -134,9 +134,9 @@ export const OpportunityFeed: React.FC = () => {
               className="rounded-xl px-3 py-2 text-xs font-medium text-slate-700 border border-slate-300 bg-white flex-1 sm:flex-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none"
             >
               <option value="All">All Locations</option>
-              <option value="Remote">🌐 Remote Only</option>
-              <option value="Pakistan">🇵🇰 Pakistan Only</option>
-              <option value="Global">✈️ International / Global</option>
+              <option value="Remote">Remote Only</option>
+              <option value="Pakistan">Pakistan Only</option>
+              <option value="Global">International / Global</option>
             </select>
           </div>
 
