@@ -25,6 +25,7 @@ test('guest saves an opportunity and creates/completes a task', async ({ page })
 });
 
 test('notification preferences show an honest guest sign-in state', async ({ page }) => {
+  await page.locator('#btn-user-menu').click();
   await page.locator('#btn-notification-preferences').click();
   await expect(page.getByRole('heading', { name: 'Email alerts' })).toBeVisible();
   await expect(page.getByText('Sign in required')).toBeVisible();
