@@ -25,7 +25,6 @@ Whether operating locally in guest mode or synced to the cloud via Supabase, Opp
 ## 🌐 Live Demo
 
 - **Live URL**: [https://opportunity-pulse-ai.vercel.app/](https://opportunity-pulse-ai.vercel.app/)
-- **Status**: Production Ready (Phase 5)
 - **Demo Mode**: The application supports a fully functional "Guest Mode" powered by local heuristics and `localStorage` if no Supabase credentials or Gemini API keys are provided.
 
 ---
