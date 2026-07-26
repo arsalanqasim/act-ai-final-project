@@ -110,7 +110,7 @@ export function prioritizeApplication(
   // Archived / offer / rejected are not actionable in the queue
   if (['archived', 'offer', 'rejected'].includes(app.status)) return null;
 
-  const deadline = getDeadlineStatus(app.opportunitySnapshot?.deadline);
+  const deadline = getDeadlineStatus(app.opportunitySnapshot?.deadline, _now);
 
   // Never promote expired opportunities (unless already in a late stage)
   if (deadline.isExpired && !['interview', 'offer'].includes(app.status)) {
@@ -208,7 +208,7 @@ export function prioritizeSavedOpportunity(
 ): PrioritizedAction | null {
   if (hasApplication) return null;
 
-  const deadline = getDeadlineStatus(opp.deadline);
+  const deadline = getDeadlineStatus(opp.deadline, _now);
   // Never surface expired opportunities
   if (deadline.isExpired) return null;
 

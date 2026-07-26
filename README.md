@@ -32,8 +32,6 @@ Whether operating locally in guest mode or synced to the cloud via Supabase, Opp
 
 ## 📸 Screenshots
 
-*(Note: Screenshots are currently missing from the repository. Please add them to the `public/screenshots/` directory and update the paths below.)*
-
 ![Landing Page & Smart Feed](public/screenshots/landing-page-placeholder.png)
 *Figure 1: The intelligent feed displaying match-scored opportunities and trusted badges.*
 

@@ -10,7 +10,7 @@ export interface DeadlineAnalysis {
 /**
  * Parses and computes the freshness and deadline status of an opportunity.
  */
-export function getDeadlineStatus(deadlineStr: string | undefined | null): DeadlineAnalysis {
+export function getDeadlineStatus(deadlineStr: string | undefined | null, now: Date = new Date()): DeadlineAnalysis {
   if (!deadlineStr || typeof deadlineStr !== 'string' || !deadlineStr.trim()) {
     return {
       status: 'Date unknown',
@@ -46,7 +46,6 @@ export function getDeadlineStatus(deadlineStr: string | undefined | null): Deadl
   }
 
   // Calculate midnight-to-midnight day difference
-  const now = new Date();
   const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const deadlineMidnight = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
 
