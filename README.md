@@ -1,8 +1,8 @@
-# 🚀 OpportunityPulse AI
+# <img src="public/icons/icon.svg" width="40" align="center" alt="Logo" /> OpportunityPulse AI
 
 > **Agentic Opportunity Radar & Career Growth Command Center for University Youth**
 
-[![Vercel Deployment Status](https://img.shields.io/badge/Vercel-Deployed-success.svg?logo=vercel)](#) 
+[![Vercel Deployment Status](https://img.shields.io/badge/Vercel-Deployed-success.svg?logo=vercel)](https://opportunity-pulse-ai.vercel.app/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg?logo=typescript)](#) 
 [![React](https://img.shields.io/badge/React-18-blue.svg?logo=react)](#)
 [![Supabase](https://img.shields.io/badge/Supabase-Database-green.svg?logo=supabase)](#)
@@ -24,7 +24,7 @@ Whether operating locally in guest mode or synced to the cloud via Supabase, Opp
 
 ## 🌐 Live Demo
 
-- **Live URL**: *(No production URL configured in repository. Add your Vercel deployment link here.)*
+- **Live URL**: [https://opportunity-pulse-ai.vercel.app/](https://opportunity-pulse-ai.vercel.app/)
 - **Status**: Production Ready (Phase 5)
 - **Demo Mode**: The application supports a fully functional "Guest Mode" powered by local heuristics and `localStorage` if no Supabase credentials or Gemini API keys are provided.
 
@@ -338,24 +338,6 @@ We welcome contributions to expand the approved sources registry and improve loc
 
 ## ⚖️ License
 
-*(No license currently specified in the repository. Please add a LICENSE file and update this section.)*
+This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/). 
 
----
-
-## 🔬 Staff Engineering Review
-
-### Strengths
-- **Architecture**: The Dual Execution Engine (Gemini + Local Heuristics) is a brilliant architectural decision that guarantees application uptime, reduces cloud costs, and improves resilience. 
-- **Security**: The implementation of an SSRF Defense Model and strict domain allow-listing for web scraping demonstrates high maturity and an understanding of enterprise serverless vulnerabilities.
-- **Data Integrity**: Using deterministic content hashes (FNV-1a) on normalized URLs to prevent database duplicates is exactly how production data pipelines should be built.
-
-### Weaknesses / Technical Debt
-- **Missing CI Pipeline**: While commands exist (`npm run lint`, `npm test`), there is no documented `.github/workflows/` directory. CI should be automated on PRs.
-- **Documentation Overlap**: The repository has fractured documentation (`AGENTS.md`, `ARCHITECTURE.md`, `CONTEXT.md`, `DECISIONS.md`). Merging these into a central docs folder or Wiki would improve discoverability.
-
-### Scalability & Maintainability
-- The React modularity and custom hook utilization are strong.
-- Moving heavy lifting to Vercel Serverless scales perfectly for this use case.
-- Supabase RLS ensures multi-tenant security is enforced at the lowest database level, preventing accidental data leaks from API logic bugs. 
-
-**Conclusion**: This is a robust, production-ready codebase exhibiting excellent engineering principles. The proactive approach to security and offline capability places it well above a typical side project.
+You are free to share and adapt the material, provided you give appropriate credit and **do not use the material for commercial purposes**.
