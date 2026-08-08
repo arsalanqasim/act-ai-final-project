@@ -31,3 +31,6 @@ playwright-report/
 
 .vercel
 .env*
+
+# Presentation and submission materials
+presentation_materials/
