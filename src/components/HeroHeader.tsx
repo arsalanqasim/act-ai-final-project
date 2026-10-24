@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Sparkles, Award, ShieldCheck, Briefcase } from 'lucide-react';
+import { Award, Briefcase } from 'lucide-react';
 
 export const HeroHeader: React.FC = () => {
   const { userProfile, opportunities, setIsProfileOpen } = useApp();

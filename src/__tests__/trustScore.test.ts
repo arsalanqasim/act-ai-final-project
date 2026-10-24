@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { calculateTrustScore } from '../utils/trustScore';
 
+const daysFromNow = (days: number): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+};
+
 describe('utils/trustScore', () => {
   it('assigns high score & source-confirmed verification for fetched official domain', () => {
     const res = calculateTrustScore({
@@ -8,7 +14,7 @@ describe('utils/trustScore', () => {
       applyUrl: 'https://hec.gov.pk/apply',
       sourceType: 'official',
       isUrlFetched: true,
-      deadline: '2026-10-31',
+      deadline: daysFromNow(30),
       title: 'HEC Overseas PhD Scholarship 2026',
       organization: 'Higher Education Commission Pakistan',
       description: 'Fully funded MS and PhD scholarships for Pakistani university graduates.',
@@ -28,7 +34,7 @@ describe('utils/trustScore', () => {
       applyUrl: 'https://devpost.com/hackathons/agentic-ai-2026',
       sourceType: 'approved-platform',
       isUrlFetched: true,
-      deadline: '2026-08-25',
+      deadline: daysFromNow(30),
       title: 'Devpost Agentic AI Challenge 2026',
       organization: 'Devpost',
       description: 'Global AI hackathon with $40,000 cash prizes.',
@@ -44,7 +50,7 @@ describe('utils/trustScore', () => {
     const res = calculateTrustScore({
       applyUrl: 'https://sample-link.com',
       isUrlFetched: false,
-      deadline: '2026-09-01',
+      deadline: daysFromNow(60),
       title: 'Community Tech Meetup',
       organization: 'Local Tech Group',
       description: 'Community hosted developer meetup and project showcase.',

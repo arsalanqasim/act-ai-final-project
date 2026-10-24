@@ -1,7 +1,7 @@
 import React, { lazy, Suspense, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { PlusCircle, User, Settings, Bookmark, Zap, LogIn, LogOut, ChevronDown, Shield, Cpu, Bell, LayoutDashboard } from 'lucide-react';
+import { PlusCircle, User, Bookmark, Zap, LogIn, LogOut, ChevronDown, Shield, Bell, LayoutDashboard } from 'lucide-react';
 import { LoadingFallback } from './LoadingFallback';
 
 const NotificationPreferencesModal = lazy(() => import('./NotificationPreferencesModal').then(module => ({ default: module.NotificationPreferencesModal })));
@@ -15,14 +15,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCareerCenter }) => {
     savedIds, 
     setIsProfileOpen, 
     setIsIngesterOpen, 
-    setIsSettingsOpen,
-    engineMode
   } = useApp();
 
   const { 
     currentUser, 
     isAuthenticated, 
-    isGuest,
     setIsAuthModalOpen, 
     setAuthMode, 
     logout 
